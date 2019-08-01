@@ -45,7 +45,8 @@ export default class extends wepy.app {
   config = {
     pages: [
       'pages/index',
-      'pages/user'
+      'pages/user',
+      'pages/auth/login'
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -80,7 +81,6 @@ export default class extends wepy.app {
   }
 
   onLaunch() {
-    this.testAsync()
   }
 
   sleep (s) {
