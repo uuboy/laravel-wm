@@ -1,0 +1,272 @@
+<style lang="less">
+.weui-media-box__info__meta {
+    margin: 0;
+    font-size: 12px;
+  }
+  .repository-info {
+    margin-top: 5px;
+  }
+  .repository-name {
+    white-space: normal;
+    font-size: 18px;
+  }
+  .avatar {
+    padding: 4px;
+    width: 50px;
+    height: 50px;
+  }
+  .inventory-count {
+    background-color: #d8d8d8;
+    float: right;
+  }
+
+  /*分类*/
+  .weui-flex {
+    align-items: center;
+  }
+  .weui-cells {
+    margin-top: 0px;
+    opacity: 0;
+    transition: .3s;
+    &_show {
+        opacity: 1;
+    }
+  }
+  .weui-cell {
+    &:before {
+        right: 15px;
+    }
+  }
+  .menu-list__item {
+    margin: 10px 0;
+    background-color: #FFFFFF;
+    border-radius: 2px;
+    overflow: hidden;
+    &:first-child {
+        margin-top: 0px;
+    }
+  }
+  .menu-list__img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .menu-list__item-hd {
+    padding: 20px;
+    transition: opacity .3s;
+    &_show {
+        opacity: .4;
+    }
+  }
+  .menu-list__item-bd {
+    height: 0;
+    overflow: hidden;
+    &_show {
+        height: auto;
+    }
+  }
+  .create {
+    width: 45px;
+    height: 45px;
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    opacity: .8;
+  }
+</style>
+<template>
+<view class="page">
+  <view class="menu-list__item">
+    <view class="weui-flex menu-list__item-hd" @tap="toggle">
+        <view class="weui-flex__item page-title">{{ currentMenuName || '我的仓库' }}</view>
+        <image class="menu-list__img" src="/images/menu.png"></image>
+    </view>
+
+    <view class="menu-list__item-bd {{ menuOpen ? 'menu-list__item-bd_show' : '' }}">
+      <view class="weui-cells {{ menuOpen ? 'weui-cells_show' : '' }}">
+        <view  class="weui-cell weui-cell_access" hover-class="weui-cell_active" @tap="changeMenu(1)">
+          <view class="weui-cell__hd">
+              <image src="/images/repository_index.png" style="margin-right: 15px;vertical-align: middle;width:25px; height: 25px;"></image>
+          </view>
+          <view class="weui-cell__bd">我的仓库</view>
+          <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+        </view>
+        <view class="weui-cell weui-cell_access" hover-class="weui-cell_active" @tap="changeMenu(2)">
+          <view class="weui-cell__hd">
+              <image src="/images/parter.png" style="margin-right: 15px;vertical-align: middle;width:25px; height: 25px;"></image>
+          </view>
+          <view class="weui-cell__bd">协作的仓库</view>
+          <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="page__hd">
+      <view class="weui-flex">
+        <view class="weui-flex__item">
+            <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
+        </view>
+        <view class="weui-flex__item page__title" style="font-size: 35px; text-align: center;padding-top: 20px;">
+            仓库
+        </view>
+      </view>
+  </view>
+  <view class="page__bd">
+      <view class="weui-panel weui-panel_access">
+          <view class="weui-panel__hd">仓库列表</view>
+          <view class="weui-panel__bd">
+            <repeat for="{{ repositories }}" key="id" index="index" item="repository">
+              <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                  <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
+                      <image class="weui-media-box__thumb avatar" src="/images/repository.png"/>
+                  </view>
+                  <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                      <view class="weui-media-box__title repository-name">{{ repository.name }}</view>
+
+                      <view class="weui-media-box__info repository-info">
+                        <view class="weui-media-box__info__meta">{{ repository.user.name }} • </view>
+                        <view class="weui-media-box__info__meta">{{ repository.updated_at_diff }}</view>
+                      </view>
+
+                      <view class="weui-badge inventory-count">{{ repository.inventory_count }}</view>
+                  </view>
+              </navigator>
+            </repeat>
+            <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+              <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+            </view>
+          </view>
+      </view>
+      <!-- 新建按钮 -->
+      <navigator url="/pages/repositories/create">
+        <image src="/images/create3.png" class="create" />
+      </navigator>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '@/utils/api'
+  import util from '@/utils/util'
+
+  export default class RepositoriesIndex extends wepy.page {
+    config = {
+      enablePullDownRefresh: true
+    }
+    data = {
+      // 仓库数据
+      repositories: [],
+      // 当前分页
+      page: 1,
+
+      noMoreData: false,
+      menuOpen: false,
+      currentMenuName: null,
+      currentMenuId: 1,
+      url: null
+    }
+    methods = {
+      toggle () {
+        this.menuOpen = !this.menuOpen
+      },
+      async changeMenu (id = 1) {
+        // 点击以后关闭下拉列表
+        this.menuOpen = false
+        // 点击当前已选类型直接返回
+        if (Number(id) === this.currentMenuId) {
+          return
+        }
+        // 重置是否有更多数据及分页
+        this.noMoreData = false
+        this.page = 1
+        // 找到选中的分类
+        if (Number(id) === 1) {
+          this.currentMenuName = '我的仓库'
+          this.currentMenuId = 1
+        }
+        if (Number(id) === 2) {
+          this.currentMenuName = '协作的仓库'
+          this.currentMenuId = 2
+        }
+        this.$apply()
+        await this.getRepositories(1, true, Number(id))
+      }
+    }
+    // 获取仓库数据
+    async getRepositories(page = 1, reset = false, menu = 1) {
+      try {
+        // 请求仓库列表接口
+        if (Number(menu) === 1) {
+          this.url = 'repositories'
+        }
+        if (Number(menu) === 2) {
+          this.url = 'parter/repositories'
+        }
+        this.$apply()
+        let repositoriesResponse = await api.authRequest({
+          url: this.url,
+          data: {
+            page: page,
+            include: 'user,lastUpdater'
+          }
+        })
+        let repositories = repositoriesResponse.data.data
+        repositories.forEach(function (repository) {
+          repository.updated_at_diff = util.diffForHumans(repository.updated_at)
+        })
+        // 将数据合并到 this.repositories
+        this.repositories = reset ? repositories : this.repositories.concat(repositories)
+        let pagination = repositoriesResponse.data.meta.pagination
+        // 根据分页设置是否还有更多数据
+        if (pagination.current_page === pagination.total_pages) {
+          this.noMoreData = true
+        } else {
+          this.noMoreData = false
+        }
+        this.$apply()
+      } catch (err) {
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+    async onPullDownRefresh() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.page = 1
+        await this.getRepositories(1, true, this.currentMenuId)
+        wepy.stopPullDownRefresh()
+      }
+    }
+    async onReachBottom () {
+      // 如果没有更多内容，直接返回
+      if (this.noMoreData) {
+        return
+      }
+      this.page = this.page + 1
+      await this.getRepositories(this.page)
+      this.$apply()
+    }
+    async onLoad() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.getRepositories()
+      }
+    }
+    async onShow() {
+      this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
+        this.noMoreData = false
+        this.page = 1
+        this.getRepositories(1, true, 1)
+      })
+    }
+  }
+</script>

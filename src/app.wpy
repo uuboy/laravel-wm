@@ -5,7 +5,7 @@ page{
   font-size: 16px;
 }
 .page__hd {
-  padding: 40px;
+  padding: 30px;
 }
 .page__bd {
   padding-bottom: 40px;
@@ -45,7 +45,8 @@ setStore(store)
 export default class extends wepy.app {
   config = {
     pages: [
-      'pages/index',
+      'pages/repositories/index',
+      'pages/repositories/create',
       'pages/users/me',
       'pages/users/edit',
       'pages/auth/login'
@@ -58,7 +59,7 @@ export default class extends wepy.app {
     },
     tabBar: {
       list: [{
-        pagePath: 'pages/index',
+        pagePath: 'pages/repositories/index',
         text: '首页',
         iconPath: 'images/index.png',
         selectedIconPath: 'images/index_selected.png'
@@ -74,7 +75,18 @@ export default class extends wepy.app {
   }
 
   globalData = {
-    userInfo: null
+    userInfo: null,
+    refreshPages: []
+  }
+
+  checkRefreshPages (route, callback) {
+    let refreshIndex = this.globalData.refreshPages.indexOf(route)
+    if (refreshIndex === -1) {
+      return
+    }
+
+    this.globalData.refreshPages.splice(refreshIndex, 1)
+    callback && callback()
   }
 
   constructor () {

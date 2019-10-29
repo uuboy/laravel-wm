@@ -135,7 +135,7 @@
             duration: 2000
           })
 
-          wepy.navigateBack()
+          // wepy.navigateBack()
         }
       } catch (err) {
         console.log(err)

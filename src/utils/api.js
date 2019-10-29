@@ -95,13 +95,12 @@ const getToken = async (options) => {
     if (refreshResponse.statusCode === 200) {
       accessToken = refreshResponse.data.access_token
     } else {
-      if(loginParams){
-          // 刷新失败了，重新调用登录方法，设置 Token
-        let authResponse = await login(loginParams)
-        if (authResponse.statusCode === 201) {
-          accessToken = authResponse.data.access_token
+        if (loginParams) {
+          let authResponse = await login(loginParams)
+          if (authResponse.statusCode === 201) {
+            accessToken = authResponse.data.meta.access_token
+          }
         }
-      }
     }
   }
   return accessToken
@@ -127,14 +126,10 @@ const authRequest = async (options, showLoading = true) => {
 
 //  退出登录
 const logout = async (params = {}) => {
-  let accessToken = wepy.getStorageSync('access_token')
   // 调用删除 Token 接口，让 Token 失效
-  let logoutResponse = await wepy.request({
-    url: host + '/' + 'authorizations/current',
-    method: 'DELETE',
-    header: {
-      'Authorization': 'Bearer ' + accessToken
-    }
+  let logoutResponse = await authRequest({
+    url: 'authorizations/current',
+    method: 'DELETE'
   })
 
   // 调用接口成功则清空缓存

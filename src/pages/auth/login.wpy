@@ -30,6 +30,17 @@
           wepy.setStorageSync('loginParams', params)
           let authResponse = await api.login(params)
           if (authResponse.statusCode === 201) {
+            let pages = this.getCurrentPages()
+            // 如果有上一页
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                refreshPages.push(page.route)
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+              this.$apply()
+            }
             wepy.navigateBack()
           }
         } catch (err) {

@@ -1,0 +1,105 @@
+<template>
+    <view class="page">
+        <view class="page__hd">
+            <view class="weui-flex">
+                <view class="weui-flex__item">
+                    <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
+                </view>
+                <view class="weui-flex__item page__title" style="font-size: 30px; text-align: center;padding-top: 20px;">
+                    创建仓库
+                </view>
+            </view>
+        </view>
+        <view class="page__bd">
+          <form bindsubmit="submit">
+            <view class="weui-cells__title">创建仓库</view>
+            <view class="weui-cells weui-cells_after-title">
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">仓库名称</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" placeholder="请输入仓库名称" name="name"/>
+                    </view>
+                </view>
+            </view>
+            <view class="weui-btn-area">
+                <button class="weui-btn" type="primary" formType="submit">保存</button>
+            </view>
+          </form>
+        </view>
+    </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/utils/api'
+
+  export default class RepositoriesCreate extends wepy.page {
+    config = {
+      navigationBarTitleText: '添加仓库'
+    }
+
+    onLoad(options) {
+      // 未登录跳转到登录页面
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      }
+    }
+
+    async submit (e) {
+      this.errors = null
+
+      let formData = e.detail.value
+
+      if (!formData.name) {
+        wepy.showToast({
+          title: '请填写仓库名称',
+          icon: 'none',
+          duration: 2000
+        })
+
+        return
+      }
+
+      try {
+        let createResponse = await api.authRequest({
+          url: 'repositories',
+          method: 'POST',
+          data: formData
+        })
+
+        if (createResponse.statusCode === 201) {
+          let pages = this.getCurrentPages()
+          // 如果有上一页
+          if (pages.length > 1) {
+            // 检查所有已经打开的页面
+            let refreshPages = []
+            pages.forEach((page) => {
+              if (page.route === 'pages/repositories/index') {
+                refreshPages.push(page.route)
+              }
+            })
+            this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            this.$apply()
+          }
+          wepy.showToast({
+            title: '添加成功',
+            icon: 'success'
+          })
+
+          setTimeout(function() {
+            wepy.navigateBack()
+          }, 2000)
+        }
+      } catch (err) {
+        console.log(err)
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+  }
+</script>
