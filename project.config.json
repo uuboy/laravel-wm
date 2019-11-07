@@ -18,7 +18,7 @@
 		}
 	},
 	"compileType": "miniprogram",
-	"appid": "wx17eaf6f0e4793ce5",
+	"appid": "wxbed39e8bfc48ca1d",
 	"projectname": "laravel-wm",
 	"miniprogramRoot": "dist/",
 	"simulatorType": "wechat",
