@@ -6,7 +6,8 @@
 <template>
   <view class="page">
       <view class="weui-btn-area">
-        <button class="weui-btn" open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">一键登录</button>
+        <button class="weui-btn" open-type="getPhoneNumber" lang="zh_CN" bindgetphonenumber="getPhoneNumber">一键登录</button>
+        <open-data type="userAvatarUrl"></open-data>
       </view>
     </view>
   </view>
@@ -21,34 +22,41 @@
       navigationBarTitleText: '登录'
     }
     methods = {
-      async onGotUserInfo (e) {
-        try {
-          let params = {
-            name: e.detail.userInfo.nickName,
-            avatar: e.detail.userInfo.avatarUrl
-          }
-          wepy.setStorageSync('loginParams', params)
-          let authResponse = await api.login(params)
-          if (authResponse.statusCode === 201) {
-            let pages = this.getCurrentPages()
-            // 如果有上一页
-            if (pages.length > 1) {
-              // 检查所有已经打开的页面
-              let refreshPages = []
-              pages.forEach((page) => {
-                refreshPages.push(page.route)
-              })
-              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
-              this.$apply()
-            }
-            wepy.navigateBack()
-          }
-        } catch (err) {
-          wepy.showModal({
-            title: '提示',
-            content: '服务器错误，请联系管理员'
-          })
-        }
+      async getPhoneNumber (e) {
+        // try {
+        //   let params = {
+        //     name: e.detail.userInfo.nickName,
+        //     avatar: e.detail.userInfo.avatarUrl
+        //   }
+        //   wepy.setStorageSync('loginParams', params)
+        //   let authResponse = await api.login(params)
+        //   if (authResponse.statusCode === 201) {
+        //     let pages = this.getCurrentPages()
+        //     // 如果有上一页
+        //     if (pages.length > 1) {
+        //       // 检查所有已经打开的页面
+        //       let refreshPages = []
+        //       pages.forEach((page) => {
+        //         refreshPages.push(page.route)
+        //       })
+        //       this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+        //       this.$apply()
+        //     }
+        //     wepy.navigateBack()
+        //   }
+        // } catch (err) {
+        //   wepy.showModal({
+        //     title: '提示',
+        //     content: '服务器错误，请联系管理员'
+        //   })
+        // }
+        let loginData = await wepy.login()
+        console.log(loginData.code)
+        console.log(e.detail.errMsg)
+        console.log(e.detail.iv)
+        console.log(e.detail.encryptedData)
+        let userInfo = await wepy.getUserInfo()
+        console.log(userInfo)
       }
     }
   }

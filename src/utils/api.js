@@ -36,16 +36,33 @@ const request = async (options, showLoading = true) => {
 }
 
 // 登录
-const login = async (params = {}) => {
+const login = async () => {
   // code 只能使用一次，所以每次单独调用
   let loginData = await wepy.login()
-  // 参数中增加code
-  params.code = loginData.code
-
 
   // 接口请求 weapp/authorizations
   let authResponse = await request({
     url: 'weapp/authorizations',
+    data: loginData.code,
+    method: 'POST'
+  })
+
+  // 登录成功，记录 token 信息
+  if (authResponse.statusCode === 201) {
+    wepy.setStorageSync('access_token', authResponse.data.meta.access_token)
+    wepy.setStorageSync('access_token_expired_at', new Date().getTime() + authResponse.data.meta.expires_in * 1000)
+  }
+
+  return authResponse
+}
+
+const register = async (params = {}) => {
+  // code 只能使用一次，所以每次单独调用
+  let loginData = await wepy.login()
+  params.code = loginData.code
+  // 接口请求 weapp/authorizations
+  let authResponse = await request({
+    url: 'weapp/register',
     data: params,
     method: 'POST'
   })
@@ -58,6 +75,7 @@ const login = async (params = {}) => {
 
   return authResponse
 }
+
 
 // 刷新 Token
 const refreshToken = async (accessToken) => {
