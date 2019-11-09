@@ -49,7 +49,8 @@ export default class extends wepy.app {
       'pages/repositories/create',
       'pages/users/me',
       'pages/users/edit',
-      'pages/auth/login'
+      'pages/auth/login',
+      'pages/auth/register'
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -144,7 +145,7 @@ export default class extends wepy.app {
 
   // 用户是否已经登录
   checkLogin () {
-    return (wepy.getStorageSync('access_token') !== '' && wepy.getStorageSync('loginParams') !== '')
+    return (wepy.getStorageSync('access_token') !== '')
   }
 }
 </script>

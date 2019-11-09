@@ -75,80 +75,110 @@
   }
 </style>
 <template>
-<view class="page">
-  <view class="menu-list__item">
-    <view class="weui-flex menu-list__item-hd" @tap="toggle">
-        <view class="weui-flex__item page-title">{{ currentMenuName || '我的仓库' }}</view>
-        <image class="menu-list__img" src="/images/menu.png"></image>
-    </view>
-
-    <view class="menu-list__item-bd {{ menuOpen ? 'menu-list__item-bd_show' : '' }}">
-      <view class="weui-cells {{ menuOpen ? 'weui-cells_show' : '' }}">
-        <view  class="weui-cell weui-cell_access" hover-class="weui-cell_active" @tap="changeMenu(1)">
-          <view class="weui-cell__hd">
-              <image src="/images/repository_index.png" style="margin-right: 15px;vertical-align: middle;width:25px; height: 25px;"></image>
-          </view>
-          <view class="weui-cell__bd">我的仓库</view>
-          <view class="weui-cell__ft weui-cell__ft_in-access"></view>
-        </view>
-        <view class="weui-cell weui-cell_access" hover-class="weui-cell_active" @tap="changeMenu(2)">
-          <view class="weui-cell__hd">
-              <image src="/images/parter.png" style="margin-right: 15px;vertical-align: middle;width:25px; height: 25px;"></image>
-          </view>
-          <view class="weui-cell__bd">协作的仓库</view>
-          <view class="weui-cell__ft weui-cell__ft_in-access"></view>
-        </view>
-      </view>
-    </view>
-  </view>
-  <view class="page__hd">
-      <view class="weui-flex">
-        <view class="weui-flex__item">
-            <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
-        </view>
-        <view class="weui-flex__item page__title" style="font-size: 35px; text-align: center;padding-top: 20px;">
-            仓库
-        </view>
-      </view>
-  </view>
-  <view class="page__bd">
-      <view class="weui-panel weui-panel_access">
-          <view class="weui-panel__hd">仓库列表</view>
-          <view class="weui-panel__bd">
-            <repeat for="{{ repositories }}" key="id" index="index" item="repository">
-              <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
-                  <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
-                      <image class="weui-media-box__thumb avatar" src="/images/repository.png"/>
-                  </view>
-                  <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
-                      <view class="weui-media-box__title repository-name">{{ repository.name }}</view>
-
-                      <view class="weui-media-box__info repository-info">
-                        <view class="weui-media-box__info__meta">{{ repository.user.name }} • </view>
-                        <view class="weui-media-box__info__meta">{{ repository.updated_at_diff }}</view>
+  <view class="navbar page">
+        <view class="page__bd">
+            <view class="weui-tab">
+                <view class="weui-navbar">
+                    <view wx:for="{{tabs}}" wx:key="*this" id="{{index}}" class="weui-navbar__item {{activeIndex == index ? 'weui-bar__item_on' : ''}}" @tap="tabClick">
+                        <view class="weui-navbar__title">{{item}}</view>
+                    </view>
+                    <view class="weui-navbar__slider" style="left: {{sliderLeft}}px; transform: translateX({{sliderOffset}}px); -webkit-transform: translateX({{sliderOffset}}px);"></view>
+                </view>
+                <view class="weui-tab__panel">
+                    <view class="weui-tab__content" hidden="{{activeIndex != 0}}">
+                      <view class="page__hd">
+                          <view class="weui-flex">
+                            <view class="weui-flex__item">
+                                <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
+                            </view>
+                            <view class="weui-flex__item page__title" style="font-size: 35px; text-align: center;padding-top: 20px;">
+                                创建的仓库
+                            </view>
+                          </view>
                       </view>
+                      <view class="page__bd">
+                          <view class="weui-panel weui-panel_access">
+                              <view class="weui-panel__hd">仓库列表</view>
+                              <view class="weui-panel__bd">
+                                <repeat for="{{ repositories }}" key="id" index="index" item="repository">
+                                  <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                                      <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
+                                          <image class="weui-media-box__thumb avatar" src="/images/repository.png"/>
+                                      </view>
+                                      <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                                          <view class="weui-media-box__title repository-name">{{ repository.name }}</view>
 
-                      <view class="weui-badge inventory-count">{{ repository.inventory_count }}</view>
-                  </view>
-              </navigator>
-            </repeat>
-            <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
-              <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                                          <view class="weui-media-box__info repository-info">
+                                            <view class="weui-media-box__info__meta">{{ repository.user.name }} • </view>
+                                            <view class="weui-media-box__info__meta">{{ repository.updated_at_diff }}</view>
+                                          </view>
+
+                                          <view class="weui-badge inventory-count">{{ repository.inventory_count }}</view>
+                                      </view>
+                                  </navigator>
+                                </repeat>
+                                <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                                  <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                                </view>
+                              </view>
+                          </view>
+                      </view>
+                    </view>
+                    <view class="weui-tab__content" hidden="{{activeIndex != 1}}">
+                      <view class="page__hd">
+                          <view class="weui-flex">
+                            <view class="weui-flex__item">
+                                <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
+                            </view>
+                            <view class="weui-flex__item page__title" style="font-size: 35px; text-align: center;padding-top: 20px;">
+                                协作的仓库
+                            </view>
+                          </view>
+                      </view>
+                      <view class="page__bd">
+                          <view class="weui-panel weui-panel_access">
+                              <view class="weui-panel__hd">仓库列表</view>
+                              <view class="weui-panel__bd">
+                                <repeat for="{{ repositories }}" key="id" index="index" item="repository">
+                                  <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                                      <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
+                                          <image class="weui-media-box__thumb avatar" src="/images/repository.png"/>
+                                      </view>
+                                      <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                                          <view class="weui-media-box__title repository-name">{{ repository.name }}</view>
+
+                                          <view class="weui-media-box__info repository-info">
+                                            <view class="weui-media-box__info__meta">{{ repository.user.name }} • </view>
+                                            <view class="weui-media-box__info__meta">{{ repository.updated_at_diff }}</view>
+                                          </view>
+
+                                          <view class="weui-badge inventory-count">{{ repository.inventory_count }}</view>
+                                      </view>
+                                  </navigator>
+                                </repeat>
+                                <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                                  <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                                </view>
+                              </view>
+                          </view>
+                      </view>
+                    </view>
+                </view>
             </view>
-          </view>
-      </view>
-      <!-- 新建按钮 -->
-      <navigator url="/pages/repositories/create">
-        <image src="/images/create3.png" class="create" />
-      </navigator>
+            <!-- 新建按钮 -->
+            <navigator url="/pages/repositories/create">
+              <image src="/images/create3.png" class="create" />
+            </navigator>
+        </view>
   </view>
-</view>
 </template>
 
 <script>
   import wepy from 'wepy'
   import api from '@/utils/api'
   import util from '@/utils/util'
+  // 需要设置slider的宽度，用于计算中间位置
+  const sliderWidth = 144
 
   export default class RepositoriesIndex extends wepy.page {
     config = {
@@ -159,48 +189,31 @@
       repositories: [],
       // 当前分页
       page: 1,
-
       noMoreData: false,
-      menuOpen: false,
-      currentMenuName: null,
-      currentMenuId: 1,
-      url: null
+      url: null,
+
+      tabs: ['创建的仓库', '协作的仓库'],
+      activeIndex: 0,
+      sliderOffset: 0,
+      sliderLeft: 0
     }
     methods = {
-      toggle () {
-        this.menuOpen = !this.menuOpen
-      },
-      async changeMenu (id = 1) {
-        // 点击以后关闭下拉列表
-        this.menuOpen = false
-        // 点击当前已选类型直接返回
-        if (Number(id) === this.currentMenuId) {
-          return
-        }
-        // 重置是否有更多数据及分页
-        this.noMoreData = false
+      tabClick (e) {
+        this.sliderOffset = e.currentTarget.offsetLeft
+        this.activeIndex = parseInt(e.currentTarget.id)
         this.page = 1
-        // 找到选中的分类
-        if (Number(id) === 1) {
-          this.currentMenuName = '我的仓库'
-          this.currentMenuId = 1
-        }
-        if (Number(id) === 2) {
-          this.currentMenuName = '协作的仓库'
-          this.currentMenuId = 2
-        }
         this.$apply()
-        await this.getRepositories(1, true, Number(id))
+        this.getRepositories(this.page, true)
       }
     }
     // 获取仓库数据
-    async getRepositories(page = 1, reset = false, menu = 1) {
+    async getRepositories(page = 1, reset = false) {
       try {
         // 请求仓库列表接口
-        if (Number(menu) === 1) {
+        if (this.activeIndex === 0) {
           this.url = 'repositories'
         }
-        if (Number(menu) === 2) {
+        if (this.activeIndex === 1) {
           this.url = 'parter/repositories'
         }
         this.$apply()
@@ -239,8 +252,8 @@
         })
       } else {
         this.page = 1
-        await this.getRepositories(1, true, this.currentMenuId)
-        wepy.stopPullDownRefresh()
+        this.$apply()
+        this.getRepositories(this.page, true)
       }
     }
     async onReachBottom () {
@@ -249,24 +262,33 @@
         return
       }
       this.page = this.page + 1
-      await this.getRepositories(this.page)
       this.$apply()
+      this.getRepositories(this.page, false)
     }
     async onLoad() {
+      let res = await wepy.getSystemInfo()
+      this.sliderLeft = (res.windowWidth / this.tabs.length - sliderWidth) / 2
+      this.sliderOffset = res.windowWidth / this.tabs.length * this.activeIndex
       if (!this.$parent.checkLogin()) {
         wepy.navigateTo({
           url: '/pages/auth/login'
         })
       } else {
-        this.getRepositories()
+        await this.getRepositories(this.page, true)
       }
     }
     async onShow() {
-      this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
-        this.noMoreData = false
-        this.page = 1
-        this.getRepositories(1, true, 1)
-      })
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
+          this.noMoreData = false
+          this.page = 1
+          this.getRepositories(this.page, true)
+        })
+      }
     }
   }
 </script>

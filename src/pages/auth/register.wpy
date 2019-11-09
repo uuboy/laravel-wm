@@ -6,7 +6,7 @@
 <template>
   <view class="page">
       <view class="weui-btn-area">
-        <button class="weui-btn" open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="getUserInfo">一键登录</button>
+        <button class="weui-btn" open-type="getPhoneNumber" lang="zh_CN" bindgetphonenumber="getPhoneNumber">手机号一键注册</button>
       </view>
     </view>
   </view>
@@ -16,19 +16,17 @@
   import wepy from 'wepy'
   import api from '@/utils/api'
 
-  export default class Login extends wepy.page {
+  export default class Register extends wepy.page {
     config = {
-      navigationBarTitleText: '登录'
+      navigationBarTitleText: '注册'
     }
     methods = {
-      async getUserInfo (e) {
+      async getPhoneNumber (e) {
         try {
-          let params = {
-            name: e.detail.userInfo.nickName,
-            avatar: e.detail.userInfo.avatarUrl
-          }
-          wepy.setStorageSync('loginParams', params)
-          let authResponse = await api.login()
+          let params = wepy.getStorageSync('loginParams')
+          params.iv = e.detail.iv
+          params.encryptedData = e.detail.encryptedData
+          let authResponse = await api.register(params)
           if (authResponse.statusCode === 201) {
             let pages = this.getCurrentPages()
             // 如果有上一页
@@ -42,25 +40,14 @@
               this.$apply()
             }
             wepy.navigateBack()
-          }
-          if (authResponse.statusCode === 404) {
-            wepy.navigateTo({
-              url: '/pages/auth/register'
-            })
+            wepy.navigateBack()
           }
         } catch (err) {
           wepy.showModal({
             title: '提示',
-            content: '服务器错误，请联系管理员'
+            content: '服务器错误，请联系管理员2'
           })
         }
-        // let loginData = await wepy.login()
-        // console.log(loginData.code)
-        // console.log(e.detail.errMsg)
-        // console.log(e.detail.iv)
-        // console.log(e.detail.encryptedData)
-        // let userInfo = await wepy.getUserInfo()
-        // console.log(userInfo)
       }
     }
   }

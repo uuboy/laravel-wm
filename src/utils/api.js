@@ -36,14 +36,15 @@ const request = async (options, showLoading = true) => {
 }
 
 // 登录
-const login = async () => {
+const login = async (params = {}) => {
   // code 只能使用一次，所以每次单独调用
   let loginData = await wepy.login()
+  params.code = loginData.code
 
   // 接口请求 weapp/authorizations
   let authResponse = await request({
     url: 'weapp/authorizations',
-    data: loginData.code,
+    data: params,
     method: 'POST'
   })
 
@@ -60,7 +61,7 @@ const register = async (params = {}) => {
   // code 只能使用一次，所以每次单独调用
   let loginData = await wepy.login()
   params.code = loginData.code
-  // 接口请求 weapp/authorizations
+  // 接口请求 weapp/register
   let authResponse = await request({
     url: 'weapp/register',
     data: params,
@@ -163,5 +164,6 @@ export default {
   authRequest,
   refreshToken,
   login,
+  register,
   logout
 }
