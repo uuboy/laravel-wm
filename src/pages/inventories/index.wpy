@@ -1,0 +1,133 @@
+<template>
+  <view class="page__hd">
+    <view class="weui-flex">
+      <view class="weui-flex__item">
+        清单列表
+      </view>
+    </view>
+  </view>
+  <view class="page__bd">
+      <view class='weui-panel weui-panel_access'>
+        <view class="weui-panel__hd">清单列表</view>
+          <view class="weui-panel__bd">
+            <repeat for="{{ inventories }}" key="id" index="index" item="inventory">
+              <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
+                <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ inventory.name }}</view>
+                <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                  <view class="weui-media-box__title">{{ inventory.name }}</view>
+                  <view class="weui-media-box__info">
+                    <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
+                    <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
+                  </view>
+                </view>
+                <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
+              </navigator>
+            </repeat>
+          </view>
+          <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+            <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+          </view>
+      </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '@/utils/api'
+  import util from '@/utils/util'
+
+  export default class InventoriesIndex extends wepy.page {
+    config = {
+      enablePullDownRefresh: true
+    }
+    data = {
+      inventories: [],
+      page: 1,
+      noMoreData: false,
+      id: 0
+    }
+    methods = {
+
+    }
+
+    async getInventory(id, page = 1, reset = false) {
+      try {
+        let inventoriesResponse = await api.authRequest({
+          url: 'repositories/' + id + '/inventories',
+          data: {
+            page: page,
+            include: 'lastUpdater'
+          },
+          method: 'GET'
+        })
+        if (inventoriesResponse.statusCode === 200) {
+          let inventories = inventoriesResponse.data.data
+          inventories.forEach(function (inventory) {
+            inventory.updated_at_diff = util.diffForHumans(inventory.updated_at)
+          })
+          this.inventories = reset ? inventories : this.inventories.concat(inventories)
+          let pagination = inventoriesResponse.data.meta.pagination
+          // 根据分页设置是否还有更多数据
+          if (pagination.current_page === pagination.total_pages) {
+            this.noMoreData = true
+          } else {
+            this.noMoreData = false
+          }
+          this.$apply()
+        }
+      } catch (err) {
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+
+    async onPullDownRefresh() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.page = 1
+        this.$apply()
+        this.getInventory(this.id, this.page, true)
+      }
+    }
+
+    async onReachBottom () {
+      // 如果没有更多内容，直接返回
+      if (this.noMoreData) {
+        return
+      }
+      this.page = this.page + 1
+      this.$apply()
+      this.getInventory(this.id, this.page, false)
+    }
+    async onLoad(options) {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.id = options.id
+        this.$apply()
+        await this.getInventory(this.id, this.page, true)
+      }
+    }
+    async onShow() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
+          this.noMoreData = false
+          this.page = 1
+          this.$apply()
+          this.getInventory(this.id, this.page, true)
+        })
+      }
+    }
+  }
+</script>

@@ -91,7 +91,7 @@
                             <view class="weui-flex__item">
                                 <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
                             </view>
-                            <view class="weui-flex__item page__title" style="font-size: 35px; text-align: center;padding-top: 20px;">
+                            <view class="weui-flex__item page__title" style="font-size: 25px; text-align: center;padding-top: 20px;">
                                 创建的仓库
                             </view>
                           </view>
@@ -101,7 +101,7 @@
                               <view class="weui-panel__hd">仓库列表</view>
                               <view class="weui-panel__bd">
                                 <repeat for="{{ repositories }}" key="id" index="index" item="repository">
-                                  <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                                  <navigator url="/pages/inventories/index?id={{ repository.id }}" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
                                       <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
                                           <image class="weui-media-box__thumb avatar" src="/images/repository.png"/>
                                       </view>
@@ -130,7 +130,7 @@
                             <view class="weui-flex__item">
                                 <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
                             </view>
-                            <view class="weui-flex__item page__title" style="font-size: 35px; text-align: center;padding-top: 20px;">
+                            <view class="weui-flex__item page__title" style="font-size: 25px; text-align: center;padding-top: 20px;">
                                 协作的仓库
                             </view>
                           </view>
@@ -140,7 +140,7 @@
                               <view class="weui-panel__hd">仓库列表</view>
                               <view class="weui-panel__bd">
                                 <repeat for="{{ repositories }}" key="id" index="index" item="repository">
-                                  <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                                  <navigator url="/pages/inventories/index?id={{ repository.id }}" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
                                       <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
                                           <image class="weui-media-box__thumb avatar" src="/images/repository.png"/>
                                       </view>
@@ -178,7 +178,7 @@
   import api from '@/utils/api'
   import util from '@/utils/util'
   // 需要设置slider的宽度，用于计算中间位置
-  const sliderWidth = 144
+  const sliderWidth = 96
 
   export default class RepositoriesIndex extends wepy.page {
     config = {
@@ -224,20 +224,22 @@
             include: 'user,lastUpdater'
           }
         })
-        let repositories = repositoriesResponse.data.data
-        repositories.forEach(function (repository) {
-          repository.updated_at_diff = util.diffForHumans(repository.updated_at)
-        })
-        // 将数据合并到 this.repositories
-        this.repositories = reset ? repositories : this.repositories.concat(repositories)
-        let pagination = repositoriesResponse.data.meta.pagination
-        // 根据分页设置是否还有更多数据
-        if (pagination.current_page === pagination.total_pages) {
-          this.noMoreData = true
-        } else {
-          this.noMoreData = false
+        if (repositoriesResponse.statusCode === 200) {
+          let repositories = repositoriesResponse.data.data
+          repositories.forEach(function (repository) {
+            repository.updated_at_diff = util.diffForHumans(repository.updated_at)
+          })
+          // 将数据合并到 this.repositories
+          this.repositories = reset ? repositories : this.repositories.concat(repositories)
+          let pagination = repositoriesResponse.data.meta.pagination
+          // 根据分页设置是否还有更多数据
+          if (pagination.current_page === pagination.total_pages) {
+            this.noMoreData = true
+          } else {
+            this.noMoreData = false
+          }
+          this.$apply()
         }
-        this.$apply()
       } catch (err) {
         wepy.showModal({
           title: '提示',
@@ -286,6 +288,7 @@
         this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
           this.noMoreData = false
           this.page = 1
+          this.$apply()
           this.getRepositories(this.page, true)
         })
       }

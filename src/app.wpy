@@ -50,7 +50,8 @@ export default class extends wepy.app {
       'pages/users/me',
       'pages/users/edit',
       'pages/auth/login',
-      'pages/auth/register'
+      'pages/auth/register',
+      'pages/inventories/index'
     ],
     window: {
       backgroundTextStyle: 'light',

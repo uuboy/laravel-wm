@@ -29,7 +29,13 @@ const request = async (options, showLoading = true) => {
   if (response.statusCode === 500) {
     wepy.showModal({
       title: '提示',
-      content: '服务器错误，请联系管理员或重试'
+      content: '服务器错误，请联系管理员'
+    })
+  }
+  if (response.statusCode === 429) {
+    wepy.showModal({
+      title: '提示',
+      content: '您的操作过于频繁，请稍后再试'
     })
   }
   return response

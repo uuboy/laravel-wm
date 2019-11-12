@@ -39,13 +39,14 @@
               this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
               this.$apply()
             }
-            wepy.navigateBack()
-            wepy.navigateBack()
+            wepy.switchTab({
+              url: '/pages/users/me'
+            })
           }
         } catch (err) {
           wepy.showModal({
             title: '提示',
-            content: '服务器错误，请联系管理员2'
+            content: '服务器错误，请联系管理员'
           })
         }
       }
