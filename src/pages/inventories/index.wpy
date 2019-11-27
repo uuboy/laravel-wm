@@ -1,34 +1,119 @@
 <template>
-  <view class="page__hd">
-    <view class="weui-flex">
-      <view class="weui-flex__item">
-        清单列表
+  <view class="narbar page">
+    <view class="page__bd">
+      <view class="weui-tab">
+        <view class="weui-navbar">
+          <view wx:for="{{tabs}}" wx:key="*this" id="{{index}}" class="weui-navbar__item {{activeIndex == index ? 'weui-bar__item_on' : ''}}" @tap="tapClick">
+            <view class="weui-navbar__title">{{item}}</view>
+          </view>
+          <view class="weui-navbar__slider" style="left: {{sliderLeft}}px; transform: translateX({{sliderOffset}}px); -webkit-transform: translateX({{sliderOffset}}px)"></view>
+        </view>
+        <view class="weui-tab__panel">
+          <view class="weui-tab__content" hidden="{{activeIndex != 0}}">
+            <view class="page">
+              <view class="page__hd">
+                <view class="weui-flex">
+                  <view class="weui-flex__item">
+                    清单列表
+                  </view>
+                </view>
+              </view>
+              <view class="page__bd">
+                  <view class='weui-panel weui-panel_access'>
+                    <view class="weui-panel__hd">清单列表</view>
+                      <view class="weui-panel__bd">
+                        <repeat for="{{ inventories }}" key="id" index="index" item="inventory">
+                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
+                            <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ inventory.name }}</view>
+                            <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                              <view class="weui-media-box__title">{{ inventory.name }}</view>
+                              <view class="weui-media-box__info">
+                                <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
+                                <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
+                              </view>
+                            </view>
+                            <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
+                          </navigator>
+                        </repeat>
+                      </view>
+                      <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                        <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                      </view>
+                  </view>
+              </view>
+            </view>
+          </view>
+          <view class="weui-tab__content" hidden="{{activeIndex != 1}}">
+            <view class="page">
+              <view class="page__hd">
+                <view class="weui-flex">
+                  <view class="weui-flex__item">
+                    商品列表
+                  </view>
+                </view>
+              </view>
+              <view class="page__bd">
+                  <view class='weui-panel weui-panel_access'>
+                    <view class="weui-panel__hd">商品列表</view>
+                      <view class="weui-panel__bd">
+                        <repeat for="{{ goods }}" key="id" index="index" item="goods">
+                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
+                            <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ good.name }}</view>
+                            <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                              <view class="weui-media-box__title">{{ good.name }}</view>
+                              <view class="weui-media-box__info">
+                                <view class="weui-media-box__info__meta">{{ good.lastUpdater.name }} • </view>
+                                <view class="weui-media-box__info__meta">{{ good.updated_at_diff }}</view>
+                              </view>
+                            </view>
+                          </navigator>
+                        </repeat>
+                      </view>
+                      <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                        <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                      </view>
+                  </view>
+              </view>
+            </view>
+          </view>
+          <view class="weui-tab__content" hidden="{{activeIndex != 2}}">
+            <view class="page">
+              <view class="page__hd">
+                <view class="weui-flex">
+                  <view class="weui-flex__item">
+                    往来单位列表
+                  </view>
+                </view>
+              </view>
+              <view class="page__bd">
+                  <view class='weui-panel weui-panel_access'>
+                    <view class="weui-panel__hd">往来单位列表</view>
+                      <view class="weui-panel__bd">
+                        <repeat for="{{ factories }}" key="id" index="index" item="factory">
+                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
+                            <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ factory.name }}</view>
+                            <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                              <view class="weui-media-box__title">{{ factory.name }}</view>
+                              <view class="weui-media-box__info">
+                                <view class="weui-media-box__info__meta">{{ factory.lastUpdater.name }} • </view>
+                                <view class="weui-media-box__info__meta">{{ factory.updated_at_diff }}</view>
+                              </view>
+                            </view>
+                          </navigator>
+                        </repeat>
+                      </view>
+                      <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                        <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                      </view>
+                  </view>
+              </view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
-  <view class="page__bd">
-      <view class='weui-panel weui-panel_access'>
-        <view class="weui-panel__hd">清单列表</view>
-          <view class="weui-panel__bd">
-            <repeat for="{{ inventories }}" key="id" index="index" item="inventory">
-              <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
-                <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ inventory.name }}</view>
-                <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
-                  <view class="weui-media-box__title">{{ inventory.name }}</view>
-                  <view class="weui-media-box__info">
-                    <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
-                    <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
-                  </view>
-                </view>
-                <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
-              </navigator>
-            </repeat>
-          </view>
-          <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
-            <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
-          </view>
-      </view>
-  </view>
+
 </template>
 
 <script>
@@ -36,18 +121,40 @@
   import api from '@/utils/api'
   import util from '@/utils/util'
 
+  const sliderWidth = 96
+
   export default class InventoriesIndex extends wepy.page {
     config = {
       enablePullDownRefresh: true
     }
     data = {
       inventories: [],
+      goods: [],
+      factories: [],
       page: 1,
       noMoreData: false,
-      id: 0
+      id: 0,
+      tabs: ['清单列表', '商品列表', '往来单位列表'],
+      activeIndex: 0,
+      sliderOffset: 0,
+      sliderLeft: 0
     }
     methods = {
-
+      tapClick(e) {
+        this.sliderOffset = e.currentTarget.offsetLeft
+        this.activeIndex = parseInt(e.currentTarget.id)
+        this.page = 1
+        this.$apply()
+        if (this.activeIndex === 0) {
+          this.getInventory(this.id, this.page, true)
+        }
+        if (this.activeIndex === 1) {
+          this.getGood(this.id, this.page, true)
+        }
+        if (this.activeIndex === 2) {
+          this.getFactory(this.id, this.page, true)
+        }
+      }
     }
 
     async getInventory(id, page = 1, reset = false) {
@@ -83,6 +190,72 @@
       }
     }
 
+    async getGood(id, page = 1, reset = false) {
+      try {
+        let goodsResponse = await api.authRequest({
+          url: 'repositories/' + id + '/goods',
+          data: {
+            page: page,
+            include: 'lastUpdater'
+          },
+          method: 'GET'
+        })
+        if (goodsResponse.statusCode === 200) {
+          let goods = goodsResponse.data.data
+          goods.forEach(function (good) {
+            good.updated_at_diff = util.diffForHumans(good.updated_at)
+          })
+          this.goods = reset ? goods : this.goods.concat(goods)
+          let pagination = goodsResponse.data.meta.pagination
+          // 根据分页设置是否还有更多数据
+          if (pagination.current_page === pagination.total_pages) {
+            this.noMoreData = true
+          } else {
+            this.noMoreData = false
+          }
+          this.$apply()
+        }
+      } catch (err) {
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+
+    async getFactory(id, page = 1, reset = false) {
+      try {
+        let factoriesResponse = await api.authRequest({
+          url: 'repositories/' + id + '/factories',
+          data: {
+            page: page,
+            include: 'lastUpdater'
+          },
+          method: 'GET'
+        })
+        if (factoriesResponse.statusCode === 200) {
+          let factories = factoriesResponse.data.data
+          factories.forEach(function (factory) {
+            factory.updated_at_diff = util.diffForHumans(factory.updated_at)
+          })
+          this.factories = reset ? factories : this.factories.concat(factories)
+          let pagination = factoriesResponse.data.meta.pagination
+          // 根据分页设置是否还有更多数据
+          if (pagination.current_page === pagination.total_pages) {
+            this.noMoreData = true
+          } else {
+            this.noMoreData = false
+          }
+          this.$apply()
+        }
+      } catch (err) {
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+
     async onPullDownRefresh() {
       if (!this.$parent.checkLogin()) {
         wepy.navigateTo({
@@ -91,7 +264,15 @@
       } else {
         this.page = 1
         this.$apply()
-        this.getInventory(this.id, this.page, true)
+        if (this.activeIndex === 0) {
+          this.getInventory(this.id, this.page, true)
+        }
+        if (this.activeIndex === 1) {
+          this.getGood(this.id, this.page, true)
+        }
+        if (this.activeIndex === 2) {
+          this.getFactory(this.id, this.page, true)
+        }
       }
     }
 
@@ -102,7 +283,15 @@
       }
       this.page = this.page + 1
       this.$apply()
-      this.getInventory(this.id, this.page, false)
+      if (this.activeIndex === 0) {
+        this.getInventory(this.id, this.page, true)
+      }
+      if (this.activeIndex === 1) {
+        this.getGood(this.id, this.page, true)
+      }
+      if (this.activeIndex === 2) {
+        this.getFactory(this.id, this.page, true)
+      }
     }
     async onLoad(options) {
       if (!this.$parent.checkLogin()) {
@@ -112,10 +301,21 @@
       } else {
         this.id = options.id
         this.$apply()
-        await this.getInventory(this.id, this.page, true)
+        if (this.activeIndex === 0) {
+          await this.getInventory(this.id, this.page, true)
+        }
+        if (this.activeIndex === 1) {
+          await this.getGood(this.id, this.page, true)
+        }
+        if (this.activeIndex === 2) {
+          await this.getFactory(this.id, this.page, true)
+        }
       }
     }
     async onShow() {
+      let res = await wepy.getSystemInfo()
+      this.sliderLeft = (res.windowWidth / this.tabs.length - sliderWidth) / 2
+      this.sliderOffset = res.windowWidth / this.tabs.length * this.activeIndex
       if (!this.$parent.checkLogin()) {
         wepy.navigateTo({
           url: '/pages/auth/login'
@@ -125,7 +325,15 @@
           this.noMoreData = false
           this.page = 1
           this.$apply()
-          this.getInventory(this.id, this.page, true)
+          if (this.activeIndex === 0) {
+            this.getInventory(this.id, this.page, true)
+          }
+          if (this.activeIndex === 1) {
+            this.getGood(this.id, this.page, true)
+          }
+          if (this.activeIndex === 2) {
+            this.getFactory(this.id, this.page, true)
+          }
         })
       }
     }
