@@ -146,6 +146,7 @@
       goods: [],
       factories: [],
       page: 1,
+      isLoading: false,
       noMoreData: false,
       id: 0,
       tabs: ['清单列表', '商品列表', '往来单位列表'],
@@ -279,33 +280,36 @@
         this.page = 1
         this.$apply()
         if (this.activeIndex === 0) {
-          this.getInventory(this.id, this.page, true)
+          await this.getInventory(this.id, this.page, true)
         }
         if (this.activeIndex === 1) {
-          this.getGood(this.id, this.page, true)
+          await this.getGood(this.id, this.page, true)
         }
         if (this.activeIndex === 2) {
-          this.getFactory(this.id, this.page, true)
+          await this.getFactory(this.id, this.page, true)
         }
+        wepy.stopPullDownRefresh()
       }
     }
 
     async onReachBottom () {
       // 如果没有更多内容，直接返回
-      if (this.noMoreData) {
+      if (this.noMoreData || this.isLoading) {
         return
       }
+      this.isLoading = true
       this.page = this.page + 1
-      this.$apply()
       if (this.activeIndex === 0) {
-        this.getInventory(this.id, this.page, true)
+        await this.getInventory(this.id, this.page, true)
       }
       if (this.activeIndex === 1) {
-        this.getGood(this.id, this.page, true)
+        await this.getGood(this.id, this.page, true)
       }
       if (this.activeIndex === 2) {
-        this.getFactory(this.id, this.page, true)
+        await this.getFactory(this.id, this.page, true)
       }
+      this.isLoading = false
+      this.$apply()
     }
     async onLoad(options) {
       if (!this.$parent.checkLogin()) {

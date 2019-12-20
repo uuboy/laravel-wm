@@ -1,3 +1,8 @@
+<style lang="less">
+  .factory_name{
+    text-align: center;
+  }
+</style>
 <template>
     <view class="page">
         <view class="page__hd">
@@ -25,9 +30,11 @@
                   <view class="weui-cell weui-cell_access">
                     <view class="weui-cell__hd">往来单位</view>
                     <view class="weui-cell__bd" hover-class="weui-cell_active">
+
                       <navigator url="/pages/inventories/selectFactory?repository_id={{ repository_id }}">
                         <view class="factory_name" wx:if="{{ selectFactory }}">{{ selectFactory.name }}</view>
                         <view class="factory_name" wx:else>点击选择往来单位</view>
+                        <input class="weui-input" name="factory_id" value="{{selectFactory.id}}" hidden="true"/>
                       </navigator>
                     </view>
                     <view class="weui-cell__ft weui-cell__ft_in-access"></view>
@@ -79,6 +86,7 @@
         })
       } else {
         this.selectFactory = this.$parent.globalData.selectFactory
+        this.$parent.globalData.selectFactory = null
         this.$apply()
       }
     }

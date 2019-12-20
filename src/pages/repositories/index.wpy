@@ -191,6 +191,7 @@
       page: 1,
       noMoreData: false,
       url: null,
+      isLoading: false,
 
       tabs: ['创建的仓库', '协作的仓库'],
       activeIndex: 0,
@@ -255,17 +256,20 @@
       } else {
         this.page = 1
         this.$apply()
-        this.getRepositories(this.page, true)
+        await this.getRepositories(this.page, true)
+        wepy.stopPullDownRefresh()
       }
     }
     async onReachBottom () {
       // 如果没有更多内容，直接返回
-      if (this.noMoreData) {
+      if (this.noMoreData || this.isLoading) {
         return
       }
+      this.isLoading = true
       this.page = this.page + 1
+      await this.getRepositories(this.page, false)
+      this.isLoading = false
       this.$apply()
-      this.getRepositories(this.page, false)
     }
     async onLoad() {
       let res = await wepy.getSystemInfo()

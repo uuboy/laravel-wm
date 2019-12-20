@@ -1,3 +1,5 @@
+<style lang="less">
+</style>
 <template>
   <view class="page">
     <view class="page__hd">
@@ -49,6 +51,7 @@
       factories: [],
       // 当前分页
       page: 1,
+      isLoading: false,
       noMoreData: false,
       repository_id: 0
     }
@@ -113,19 +116,21 @@
         })
       } else {
         this.page = 1
+        await this.getFactory(this.repository_id, this.page, true)
         this.$apply()
-        this.getFactory(this.repository_id, this.page, true)
       }
     }
 
     async onReachBottom () {
       // 如果没有更多内容，直接返回
-      if (this.noMoreData) {
+      if (this.noMoreData || this.isLoading) {
         return
       }
+      this.isLoading = true
       this.page = this.page + 1
+      await this.getFactory(this.repository_id, this.page, true)
+      this.isLoading = false
       this.$apply()
-      this.getFactory(this.repository_id, this.page, true)
     }
   }
 
