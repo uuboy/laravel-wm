@@ -1,0 +1,140 @@
+<template>
+    <view class="page">
+        <view class="page__hd">
+            <view class="weui-flex">
+                <view class="weui-flex__item">
+                    <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
+                </view>
+                <view class="weui-flex__item page__title" style="font-size: 30px; text-align: center;padding-top: 20px;">
+                    创建清单
+                </view>
+            </view>
+        </view>
+        <view class="page__bd">
+          <form bindsubmit="submit">
+            <view class="weui-cells__title">创建清单</view>
+            <view class="weui-cells weui-cells_after-title">
+                <view class="weui-cell weui-cell_input">
+                  <view class="weui-cell__hd">
+                      <view class="weui-label">清单名称</view>
+                  </view>
+                  <view class="weui-cell__bd">
+                      <input class="weui-input" placeholder="请输入清单名称" name="name"/>
+                  </view>
+                </view>
+                  <view class="weui-cell weui-cell_access">
+                    <view class="weui-cell__hd">往来单位</view>
+                    <view class="weui-cell__bd" hover-class="weui-cell_active">
+                      <navigator url="/pages/inventories/selectFactory?repository_id={{ repository_id }}">
+                        <view class="factory_name" wx:if="{{ selectFactory }}">{{ selectFactory.name }}</view>
+                        <view class="factory_name" wx:else>点击选择往来单位</view>
+                      </navigator>
+                    </view>
+                    <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+                  </view>
+                </view>
+            <view class="weui-btn-area">
+                <button class="weui-btn" type="primary" formType="submit">保存</button>
+            </view>
+          </form>
+        </view>
+    </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/utils/api'
+
+  export default class RepositoriesCreate extends wepy.page {
+    config = {
+      navigationBarTitleText: '添加仓库'
+    }
+
+    data = {
+      repository_id: 0,
+      factories: null,
+      factoryPage: 1,
+      factoryIndex: 0,
+      selectFactory: null
+    }
+
+    methods = {
+
+    }
+    async onLoad(options) {
+      // 未登录跳转到登录页面
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.repository_id = options.repository_id
+        this.$apply()
+      }
+    }
+
+    async onShow() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.selectFactory = this.$parent.globalData.selectFactory
+        this.$apply()
+      }
+    }
+
+    async submit (e) {
+      this.errors = null
+
+      let formData = e.detail.value
+
+      if (!formData.name) {
+        wepy.showToast({
+          title: '请填写清单名称',
+          icon: 'none',
+          duration: 2000
+        })
+
+        return
+      }
+
+      try {
+        let createResponse = await api.authRequest({
+          url: 'repositories/' + this.repository_id + '/inventories',
+          method: 'POST',
+          data: formData
+        })
+
+        if (createResponse.statusCode === 201) {
+          let pages = this.getCurrentPages()
+          // 如果有上一页
+          if (pages.length > 1) {
+            // 检查所有已经打开的页面
+            let refreshPages = []
+            pages.forEach((page) => {
+              if (page.route === 'pages/inventories/index') {
+                refreshPages.push(page.route)
+              }
+            })
+            this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            this.$apply()
+          }
+          wepy.showToast({
+            title: '添加成功',
+            icon: 'success'
+          })
+
+          setTimeout(function() {
+            wepy.navigateBack()
+          }, 2000)
+        }
+      } catch (err) {
+        console.log(err)
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+  }
+</script>

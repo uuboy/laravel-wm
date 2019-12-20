@@ -167,7 +167,7 @@
             </view>
             <!-- 新建按钮 -->
             <navigator url="/pages/repositories/create">
-              <image src="/images/create3.png" class="create" />
+              <image src="/images/create3.png" class="create"/>
             </navigator>
         </view>
   </view>

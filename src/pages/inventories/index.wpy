@@ -1,3 +1,13 @@
+<style lang="less">
+  .create {
+    width: 45px;
+    height: 45px;
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    opacity: .8;
+  }
+</style>
 <template>
   <view class="narbar page">
     <view class="page__bd">
@@ -40,6 +50,10 @@
                         <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
                       </view>
                   </view>
+                  <!-- 清单新建按钮 -->
+                  <navigator url="/pages/inventories/create?repository_id={{ id }}">
+                    <image src="/images/create3.png" class="create"/>
+                  </navigator>
               </view>
             </view>
           </view>

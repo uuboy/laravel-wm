@@ -55,7 +55,9 @@ export default class extends wepy.app {
       'pages/users/edit',
       'pages/auth/login',
       'pages/auth/register',
-      'pages/inventories/index'
+      'pages/inventories/index',
+      'pages/inventories/create',
+      'pages/inventories/selectFactory'
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -82,7 +84,8 @@ export default class extends wepy.app {
 
   globalData = {
     userInfo: null,
-    refreshPages: []
+    refreshPages: [],
+    selectFactory: null
   }
 
   checkRefreshPages (route, callback) {
