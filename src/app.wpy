@@ -33,6 +33,9 @@ page{
     text-align: left;
     font-size: 14px;
 }
+.bgF8{
+    background-color: #F8F8F8;
+}
 </style>
 
 <script>
@@ -57,7 +60,11 @@ export default class extends wepy.app {
       'pages/auth/register',
       'pages/inventories/index',
       'pages/inventories/create',
-      'pages/inventories/selectFactory'
+      'pages/inventories/selectFactory',
+      'pages/bills/index',
+      'pages/bills/create',
+      'pages/bills/selectGood',
+      'pages/goods/create'
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -85,7 +92,8 @@ export default class extends wepy.app {
   globalData = {
     userInfo: null,
     refreshPages: [],
-    selectFactory: null
+    selectFactory: null,
+    selectGood: null
   }
 
   checkRefreshPages (route, callback) {

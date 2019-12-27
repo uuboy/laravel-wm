@@ -31,27 +31,27 @@
               <view class="page__bd">
                   <view class='weui-panel weui-panel_access'>
                     <view class="weui-panel__hd">清单列表</view>
-                      <view class="weui-panel__bd">
-                        <repeat for="{{ inventories }}" key="id" index="index" item="inventory">
-                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
-                            <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ inventory.name }}</view>
-                            <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
-                              <view class="weui-media-box__title">{{ inventory.name }}</view>
-                              <view class="weui-media-box__info">
-                                <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
-                                <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
-                              </view>
+                    <view class="weui-panel__bd">
+                      <repeat for="{{ inventories }}" key="id" index="index" item="inventory">
+                        <navigator class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active" url="/pages/bills/index?inventory_id={{inventory.id}}&repository_id={{id}}">
+                          <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ inventory.name }}</view>
+                          <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                            <view class="weui-media-box__title">{{ inventory.name }}</view>
+                            <view class="weui-media-box__info">
+                              <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
+                              <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
                             </view>
-                            <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
-                          </navigator>
-                        </repeat>
-                      </view>
-                      <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
-                        <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
-                      </view>
+                          </view>
+                          <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
+                        </navigator>
+                      </repeat>
+                    </view>
+                    <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                      <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+                    </view>
                   </view>
                   <!-- 清单新建按钮 -->
-                  <navigator url="/pages/inventories/create?repository_id={{ id }}">
+                  <navigator url="/pages/inventories/create?repository_id={{id}}">
                     <image src="/images/create3.png" class="create"/>
                   </navigator>
               </view>
@@ -70,8 +70,8 @@
                   <view class='weui-panel weui-panel_access'>
                     <view class="weui-panel__hd">商品列表</view>
                       <view class="weui-panel__bd">
-                        <repeat for="{{ goods }}" key="id" index="index" item="goods">
-                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
+                        <repeat for="{{ goods }}" key="id" index="index" item="good">
+                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
                             <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ good.name }}</view>
                             <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
                               <view class="weui-media-box__title">{{ good.name }}</view>
@@ -87,6 +87,10 @@
                         <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
                       </view>
                   </view>
+                  <!-- 产品新建按钮 -->
+                  <navigator url="/pages/goods/create?repository_id={{id}}">
+                    <image src="/images/create3.png" class="create"/>
+                  </navigator>
               </view>
             </view>
           </view>
@@ -104,7 +108,7 @@
                     <view class="weui-panel__hd">往来单位列表</view>
                       <view class="weui-panel__bd">
                         <repeat for="{{ factories }}" key="id" index="index" item="factory">
-                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class='weui-cell_active'>
+                          <navigator class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
                             <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ factory.name }}</view>
                             <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
                               <view class="weui-media-box__title">{{ factory.name }}</view>
@@ -120,6 +124,10 @@
                         <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
                       </view>
                   </view>
+                  <!-- 往来单位新建按钮 -->
+                  <navigator url="/pages/factories/create?repository_id={{id}}">
+                    <image src="/images/create3.png" class="create"/>
+                  </navigator>
               </view>
             </view>
           </view>
@@ -292,7 +300,7 @@
       }
     }
 
-    async onReachBottom () {
+    async onReachBottom() {
       // 如果没有更多内容，直接返回
       if (this.noMoreData || this.isLoading) {
         return
