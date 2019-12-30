@@ -1,4 +1,12 @@
 <style lang="less">
+.create {
+    width: 45px;
+    height: 45px;
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    opacity: .8;
+}
 </style>
 <template>
   <view class="page">
@@ -32,6 +40,10 @@
           <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
         </view>
       </view>
+      <!-- 往来单位新建按钮 -->
+      <navigator url="/pages/factories/create?repository_id={{repository_id}}">
+        <image src="/images/create3.png" class="create"/>
+      </navigator>
     </view>
   </view>
 </template>
@@ -106,6 +118,21 @@
         this.repository_id = options.repository_id
         await this.getFactory(options.repository_id, this.page, true)
         this.$apply()
+      }
+    }
+
+    async onShow() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
+          this.noMoreData = false
+          this.page = 1
+          this.$apply()
+          this.getFactory(this.repository_id, this.page, true)
+        })
       }
     }
 

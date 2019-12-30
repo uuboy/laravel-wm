@@ -64,7 +64,8 @@ export default class extends wepy.app {
       'pages/bills/index',
       'pages/bills/create',
       'pages/bills/selectGood',
-      'pages/goods/create'
+      'pages/goods/create',
+      'pages/factories/create'
     ],
     window: {
       backgroundTextStyle: 'light',

@@ -83,14 +83,13 @@
   import wepy from 'wepy'
   import api from '@/utils/api'
 
-  export default class RepositoriesCreate extends wepy.page {
+  export default class GoodsCreate extends wepy.page {
     config = {
-      navigationBarTitleText: '添加仓库'
+      navigationBarTitleText: '添加产品'
     }
 
     data = {
       repository_id: 0,
-      goods: null,
       selectGood: null,
       sorts: ['消耗类', '装备类'],
       sortIndex: 0,
@@ -157,7 +156,7 @@
             // 检查所有已经打开的页面
             let refreshPages = []
             pages.forEach((page) => {
-              if (page.route === 'pages/inventories/index') {
+              if (page.route === 'pages/inventories/index' || page.route === 'pages/bills/selectGood') {
                 refreshPages.push(page.route)
               }
             })
