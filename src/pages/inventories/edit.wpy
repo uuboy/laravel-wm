@@ -11,63 +11,52 @@
                     <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
                 </view>
                 <view class="weui-flex__item page__title" style="font-size: 30px; text-align: center;padding-top: 20px;">
-                    创建产品
+                    修改清单
                 </view>
             </view>
         </view>
         <view class="page__bd">
           <form bindsubmit="submit">
-            <view class="weui-cells__title">创建产品</view>
+            <view class="weui-cells__title">修改清单</view>
             <view class="weui-cells weui-cells_after-title">
                 <view class="weui-cell weui-cell_input">
                   <view class="weui-cell__hd">
-                      <view class="weui-label">产品名称</view>
+                      <view class="weui-label">清单名称</view>
                   </view>
                   <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入产品名称" name="name"/>
+                      <input class="weui-input" placeholder="请输入清单名称" name="name" value="{{inventory.name}}"/>
                   </view>
                 </view>
-                <view class="weui-cell weui-cell_input">
-                  <view class="weui-cell__hd">
-                      <view class="weui-label">产品规格</view>
+                <view class="weui-cell weui-cell_access">
+                  <view class="weui-cell__hd">往来单位</view>
+                  <view class="weui-cell__bd" hover-class="weui-cell_active">
+
+                    <navigator url="/pages/inventories/selectFactory?repository_id={{repository_id}}">
+                      <view class="factory_name">{{ selectFactory.name }}</view>
+                      <input class="weui-input" name="factory_id" value="{{selectFactory.id}}" hidden="true"/>
+                    </navigator>
                   </view>
-                  <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入产品规格" name="type"/>
-                  </view>
-                </view>
-                <view class="weui-cell weui-cell_input">
-                  <view class="weui-cell__hd">
-                      <view class="weui-label">产品价格</view>
-                  </view>
-                  <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入产品价格" name="price"/>
-                  </view>
-                </view>
-                <view class="weui-cell weui-cell_input">
-                  <view class="weui-cell__hd">
-                      <view class="weui-label">生产厂家</view>
-                  </view>
-                  <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入生产厂家" name="factory"/>
-                  </view>
-                </view>
-                <view class="weui-cell weui-cell_input">
-                  <view class="weui-cell__hd">
-                      <view class="weui-label">计量单位</view>
-                  </view>
-                  <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入计量单位" name="unit"/>
-                  </view>
+                  <view class="weui-cell__ft weui-cell__ft_in-access"></view>
                 </view>
                 <view class="weui-cell weui-cell_select">
                   <view class="weui-cell__hd weui-cell__hd_in-select-after">
-                    <view class="weui-label">产品类型</view>
+                    <view class="weui-label">交易类型</view>
                   </view>
                   <view class="weui-cell__bd">
                     <picker @change="bindSortChange" value="{{sortIndex}}" range="{{sorts}}" name="sort">
                       <view class="weui-select weui-select_in-select-after">
                         {{sorts[sortIndex]}}
                       </view>
+                    </picker>
+                  </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                  <view class="weui-cell__hd">
+                    <view class="weui-label">交易日期</view>
+                  </view>
+                  <view class="weui-cell__bd">
+                    <picker mode="date" value="{{date}}" start="1900-01-01" end="2099-12-31" @change="bindDateChange" name="deal_date">
+                      <view class="weui-input">{{date}}</view>
                     </picker>
                   </view>
                 </view>
@@ -83,14 +72,17 @@
   import wepy from 'wepy'
   import api from '@/utils/api'
 
-  export default class GoodsCreate extends wepy.page {
+  export default class InventoriesEdit extends wepy.page {
     config = {
-      navigationBarTitleText: '添加产品'
+      navigationBarTitleText: '修改仓库'
     }
 
     data = {
       repository_id: 0,
-      sorts: ['消耗类', '装备类'],
+      inventory_id: 0,
+      inventory: null,
+      selectFactory: null,
+      sorts: ['出库', '入库'],
       sortIndex: 0,
       date: '',
       errors: null
@@ -99,9 +91,11 @@
     methods = {
       bindSortChange (e) {
         this.sortIndex = e.detail.value
+      },
+      bindDateChange (e) {
+        this.date = e.detail.value
       }
     }
-
     async onLoad(options) {
       // 未登录跳转到登录页面
       if (!this.$parent.checkLogin()) {
@@ -110,6 +104,11 @@
         })
       } else {
         this.repository_id = options.repository_id
+        this.inventory_id = options.inventory_id
+        await this.getInventory(this.inventory_id)
+        this.selectFactory = this.inventory.factory
+        this.sortIndex = this.inventory.factory.sort
+        this.date = this.inventory.deal_date
         this.$apply()
       }
     }
@@ -119,6 +118,23 @@
         wepy.navigateTo({
           url: '/pages/auth/login'
         })
+      } else {
+        this.selectFactory = this.$parent.globalData.selectFactory
+        this.$parent.globalData.selectFactory = null
+        this.$apply()
+      }
+    }
+
+    async getInventory(id) {
+      let inventoryResponse = await api.authRequest({
+        url: 'repositories/' + this.repository_id + '/inventories/' + this.inventory_id,
+        data: {
+          include: 'factory'
+        }
+      })
+      if (inventoryResponse.statusCode === 200) {
+        this.inventory = inventoryResponse.data
+        this.$apply()
       }
     }
 
@@ -129,7 +145,7 @@
 
       if (!formData.name) {
         wepy.showToast({
-          title: '请填写商品名称',
+          title: '请填写清单名称',
           icon: 'none',
           duration: 2000
         })
@@ -138,20 +154,20 @@
       }
 
       try {
-        let createResponse = await api.authRequest({
-          url: 'repositories/' + this.repository_id + '/goods',
-          method: 'POST',
+        let updateResponse = await api.authRequest({
+          url: 'repositories/' + this.repository_id + '/inventories/' + this.inventory_id,
+          method: 'PUT',
           data: formData
         })
 
-        if (createResponse.statusCode === 201) {
+        if (updateResponse.statusCode === 200) {
           let pages = this.getCurrentPages()
           // 如果有上一页
           if (pages.length > 1) {
             // 检查所有已经打开的页面
             let refreshPages = []
             pages.forEach((page) => {
-              if (page.route === 'pages/inventories/index' || page.route === 'pages/bills/selectGood') {
+              if (page.route === 'pages/inventories/index') {
                 refreshPages.push(page.route)
               }
             })

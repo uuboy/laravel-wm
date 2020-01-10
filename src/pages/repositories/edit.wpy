@@ -1,8 +1,3 @@
-<style lang="less">
-.factory_name{
-    text-align: center;
-  }
-</style>
 <template>
     <view class="page">
         <view class="page__hd">
@@ -11,32 +6,21 @@
                     <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
                 </view>
                 <view class="weui-flex__item page__title" style="font-size: 30px; text-align: center;padding-top: 20px;">
-                    添加单据
+                    编辑仓库
                 </view>
             </view>
         </view>
         <view class="page__bd">
           <form bindsubmit="submit">
-            <view class="weui-cells__title">添加单据</view>
+            <view class="weui-cells__title">编辑仓库</view>
             <view class="weui-cells weui-cells_after-title">
-                <view class="weui-cell weui-cell_access">
-                  <view class="weui-cell__hd">商品</view>
-                  <view class="weui-cell__bd" hover-class="weui-cell_active">
-
-                    <navigator url="/pages/bills/selectGood?repository_id={{repository_id}}">
-                      <view class="factory_name" wx:if="{{ selectGood }}">{{ selectGood.name }}</view>
-                      <view class="factory_name" wx:else>点击选择商品</view>
-                    </navigator>
-                  </view>
-                  <view class="weui-cell__ft weui-cell__ft_in-access"></view>
-                </view>
                 <view class="weui-cell weui-cell_input">
-                  <view class="weui-cell__hd">
-                      <view class="weui-label">数量</view>
-                  </view>
-                  <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入商品数量" name="num"/>
-                  </view>
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">仓库名称</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="name" value="{{repository.name}}" />
+                    </view>
                 </view>
             </view>
             <view class="weui-btn-area">
@@ -50,21 +34,16 @@
   import wepy from 'wepy'
   import api from '@/utils/api'
 
-  export default class BillsCreate extends wepy.page {
+  export default class RepositoriesEdit extends wepy.page {
     config = {
-      navigationBarTitleText: '添加单据'
+      navigationBarTitleText: '修改仓库'
     }
 
     data = {
       repository_id: 0,
-      inventory_id: 0,
-      bills: null,
-      selectGood: null,
-      errors: null
+      repository: null
     }
 
-    methods = {
-    }
     async onLoad(options) {
       // 未登录跳转到登录页面
       if (!this.$parent.checkLogin()) {
@@ -73,43 +52,50 @@
         })
       } else {
         this.repository_id = options.repository_id
-        this.inventory_id = options.inventory_id
+        await this.getRepository(this.repository_id)
         this.$apply()
       }
     }
 
-    async onShow() {
-      if (!this.$parent.checkLogin()) {
-        wepy.navigateTo({
-          url: '/pages/auth/login'
-        })
-      } else {
-        this.selectGood = this.$parent.globalData.selectGood
-        this.$parent.globalData.selectGood = null
+    async getRepository(id) {
+      let repositoryResponse = await api.authRequest({
+        url: 'repositories/' + id
+      })
+      if (repositoryResponse.statusCode === 200) {
+        this.repository = repositoryResponse.data
         this.$apply()
       }
     }
-
     async submit (e) {
       this.errors = null
 
       let formData = e.detail.value
 
+      if (!formData.name) {
+        wepy.showToast({
+          title: '请填写仓库名称',
+          icon: 'none',
+          duration: 2000
+        })
+
+        return
+      }
+
       try {
-        let createResponse = await api.authRequest({
-          url: 'repositories/' + this.repository_id + '/inventories/' + this.inventory_id + '/goods/' + this.selectGood.id + '/bills',
-          method: 'POST',
+        let updateResponse = await api.authRequest({
+          url: 'repositories/' + this.repository_id,
+          method: 'PUT',
           data: formData
         })
 
-        if (createResponse.statusCode === 201) {
+        if (updateResponse.statusCode === 200) {
           let pages = this.getCurrentPages()
           // 如果有上一页
           if (pages.length > 1) {
             // 检查所有已经打开的页面
             let refreshPages = []
             pages.forEach((page) => {
-              if (page.route === 'pages/bills/index' || page.route === 'pages/inventories/index') {
+              if (page.route === 'pages/repositories/index') {
                 refreshPages.push(page.route)
               }
             })
@@ -117,7 +103,7 @@
             this.$apply()
           }
           wepy.showToast({
-            title: '添加成功',
+            title: '修改成功',
             icon: 'success'
           })
 
@@ -126,6 +112,7 @@
           }, 2000)
         }
       } catch (err) {
+        console.log(err)
         wepy.showModal({
           title: '提示',
           content: '服务器错误，请联系管理员'

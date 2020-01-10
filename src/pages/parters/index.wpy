@@ -13,24 +13,31 @@
   width: 20px;
   height: 20px;
 }
+.avatar {
+  width: 25px;
+  height: 25px;
+  display: block;
+  border-radius: 50%;
+}
 </style>
 <template>
 <view class="page">
   <view class="page__hd">
     <view class="weui-flex">
-      <view class="weui-flex__item">单据列表</view>
+      <view class="weui-flex__item">协作者列表</view>
     </view>
   </view>
   <view class="page__bd">
-    <view class="weui-cells__title">带说明的列表项</view>
+    <view class="weui-cells__title">仓库的协作者列表</view>
     <view class="weui-cells weui-cells_after-title">
-      <repeat for="{{bills}}" key="id" index="index" item="bill">
+      <repeat for="{{parters}}" key="id" index="index" item="parter">
         <view class="weui-cell">
-          <view class="weui-cell__hd"></view>
-          <view class="weui-cell__bd">{{ bill.good.name }}</view>
-          <view class="weui-cell__ft">{{ bill.num }}</view>
-          <view class="weui-cell__ft" wx:if="{{ bill.can_delete }}">
-            <image src="/images/delete.png" class="delete" catchtap="deleteBill({{bill.id}},{{bill.good.id}})"/>
+          <view class="weui-cell__hd">
+             <image class="avatar" src="{{ parter.user.avatar }}"/>
+          </view>
+          <view class="weui-cell__bd">{{ parter.user.name }}</view>
+          <view class="weui-cell__ft" wx:if="{{ parter.can_delete }}">
+            <image src="/images/delete.png" class="delete" catchtap="deleteParter({{parter.id}})"/>
           </view>
         </view>
       </repeat>
@@ -39,7 +46,7 @@
       <view class="weui-loadmore__tips weui-loadmore__tips_in-line bgF8">没有更多数据</view>
     </view>
     <!-- 清单新建按钮 -->
-    <navigator url="/pages/bills/create?repository_id={{repository_id}}&inventory_id={{id}}">
+    <navigator url="/pages/parters/create?repository_id={{repository_id}}">
       <image src="/images/create3.png" class="create"/>
     </navigator>
   </view>
@@ -50,25 +57,25 @@
   import api from '@/utils/api'
   import util from '@/utils/util'
 
-  export default class BillsIndex extends wepy.page {
+  export default class PartersIndex extends wepy.page {
     config = {
       enablePullDownRefresh: true
     }
 
     data = {
-      bills: [],
-      id: 0,
+      parters: [],
       page: 1,
       isLoading: false,
       noMoreData: false,
-      repository_id: 0
+      repository_id: 0,
+      user_id: 0
     }
 
     methods = {
-      async deleteBill(billId, billGoodId) {
+      async deleteParter(parterId) {
         let res = await wepy.showModal({
           title: '确认删除',
-          content: '您确认删除该单据么',
+          content: '您确认删除该协作者么',
           confirmText: '删除',
           cancelText: '取消'
         })
@@ -79,7 +86,7 @@
 
         try {
           let deleteResponse = await api.authRequest({
-            url: 'repositories/' + this.repository_id + '/inventories/' + this.id + '/goods/' + billGoodId + '/bills/' + billId,
+            url: 'repositories/' + this.repository_id + '/parters/' + parterId,
             method: 'DELETE'
           })
 
@@ -89,13 +96,13 @@
               // 检查所有已经打开的页面
               let refreshPages = []
               pages.forEach((page) => {
-                if (page.route === 'pages/inventories/index') {
+                if (page.route === 'pages/parters/index') {
                   refreshPages.push(page.route)
                 }
               })
               this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
             }
-            this.bills = this.bills.filter((bill) => bill.id !== billId)
+            this.parters = this.parters.filter((parter) => parter.id !== parterId)
             this.$apply()
             wepy.showToast({
               title: '删除成功',
@@ -120,7 +127,7 @@
       } else {
         this.page = 1
         this.$apply()
-        await this.getBills(this.id, this.page, true)
+        await this.getParters(this.page, true)
         wepy.stopPullDownRefresh()
       }
     }
@@ -132,7 +139,7 @@
       }
       this.isLoading = true
       this.page = this.page + 1
-      await this.getBills(this.id, this.page, false)
+      await this.getParters(this.page, false)
       this.isLoading = false
       this.$apply()
     }
@@ -143,10 +150,10 @@
           url: '/pages/auth/login'
         })
       } else {
-        this.id = options.inventory_id
+        this.user_id = options.user_id
         this.repository_id = options.repository_id
+        await this.getParters(this.page, true)
         this.$apply()
-        await this.getBills(this.id, this.page, true)
       }
     }
 
@@ -159,31 +166,31 @@
         this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
           this.noMoreData = false
           this.page = 1
+          this.getParters(this.page, true)
           this.$apply()
-          this.getBills(this.id, this.page, true)
         })
       }
     }
 
-    async getBills(id, page = 1, reset = false) {
+    async getParters(page = 1, reset = false) {
       try {
-        let billsResponse = await api.authRequest({
-          url: 'repositories/' + this.repository_id + '/inventories/' + id + '/bills',
+        let partersResponse = await api.authRequest({
+          url: 'repositories/' + this.repository_id + '/parters',
           data: {
             page: page,
-            include: 'good'
+            include: 'user,repository'
           },
           method: 'GET'
         })
         let user = await this.$parent.getCurrentUser()
-        if (billsResponse.statusCode === 200) {
-          let bills = billsResponse.data.data
-          bills.forEach((bill) => {
-            bill.can_delete = this.canDelete(user, bill)
-            bill.updated_at_diff = util.diffForHumans(bill.updated_at)
+        if (partersResponse.statusCode === 200) {
+          let parters = partersResponse.data.data
+          parters.forEach((parter) => {
+            parter.can_delete = this.canDelete(user, parter.repository.user_id)
+            parter.updated_at_diff = util.diffForHumans(parter.updated_at)
           })
-          this.bills = reset ? bills : this.bills.concat(bills)
-          let pagination = billsResponse.data.meta.pagination
+          this.parters = reset ? parters : this.parters.concat(parters)
+          let pagination = partersResponse.data.meta.pagination
           // 根据分页设置是否还有更多数据
           if (pagination.current_page === pagination.total_pages) {
             this.noMoreData = true
@@ -195,16 +202,16 @@
       } catch (err) {
         wepy.showModal({
           title: '提示',
-          content: '服务器错误，请联系管理员1'
+          content: '服务器错误，请联系管理员'
         })
       }
     }
 
-    canDelete(user, bill) {
+    canDelete(user, userId) {
       if (!user) {
         return false
       }
-      return (bill.user_id === user.id)
+      return (userId === user.id)
     }
   }
 </script>

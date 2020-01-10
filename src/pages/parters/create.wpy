@@ -1,36 +1,35 @@
 <style lang="less">
-.create {
-    width: 45px;
-    height: 45px;
-    position: fixed;
-    bottom: 30px;
-    right: 40px;
-    opacity: .8;
-  }
+.avatar {
+  width: 40px;
+  height: 40px;
+  display: block;
+  border-radius: 50%;
+}
 </style>
 <template>
   <view class="page">
     <view class="page__hd">
       <view class="weui-flex">
         <view class="weui-flex__item">
-          选择商品
+          选择协作者
         </view>
       </view>
     </view>
     <view class="page__bd">
       <view class="weui-panel weui-panel_access">
         <view class="weui-panel__hd">
-          商品列表
+          用户列表
         </view>
         <view class="weui-panel__bd">
-          <repeat for="{{ goods }}" key="id" index="index" item="good">
-            <view class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active" @tap="selectGood({{ good }})">
-              <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ good.name }}</view>
+          <repeat for="{{ users }}" key="id" index="index" item="user">
+            <view class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active" catchtap="selectUser({{user.id}})">
+              <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
+                <image class="avatar" src="{{ user.avatar }}"/>
+              </view>
               <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
-                <view class="weui-media-box__title">{{ good.name }}</view>
+                <view class="weui-media-box__title">{{ user.name }}</view>
                 <view class="weui-media-box__info">
-                  <view class="weui-media-box__info__meta">{{ good.lastUpdater.name }} • </view>
-                  <view class="weui-media-box__info__meta">{{ good.updated_at_diff }}</view>
+                  <view class="weui-media-box__info__meta">{{ user.updated_at_diff }}</view>
                 </view>
               </view>
             </view>
@@ -40,10 +39,6 @@
           <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
         </view>
       </view>
-      <!-- 产品新建按钮 -->
-      <navigator url="/pages/goods/create?repository_id={{repository_id}}">
-        <image src="/images/create3.png" class="create"/>
-      </navigator>
     </view>
   </view>
 </template>
@@ -52,14 +47,14 @@
   import api from '@/utils/api'
   import util from '@/utils/util'
 
-  export default class SelectFactory extends wepy.page {
+  export default class PartersCreate extends wepy.page {
     config = {
-      navigationBarTitleText: '选择商品',
+      navigationBarTitleText: '创建协作者',
       enablePullDownRefresh: true
     }
 
     data = {
-      goods: [],
+      users: [],
       page: 1,
       isLoading: false,
       noMoreData: false,
@@ -67,30 +62,64 @@
     }
 
     methods = {
-      async selectGood(good) {
-        this.$parent.globalData.selectGood = good
-        this.$apply()
-        wepy.navigateBack()
+      async selectUser(userId) {
+        try {
+          let selectUserResponse = await api.authRequest({
+            url: 'repositories/' + this.repository_id + '/parters',
+            data: {
+              user_id: userId
+            },
+            method: 'POST'
+          })
+
+          if (selectUserResponse.statusCode === 201) {
+            let pages = this.getCurrentPages()
+            // 如果有上一页
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/parters/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+              this.$apply()
+            }
+            wepy.showToast({
+              title: '添加成功',
+              icon: 'success'
+            })
+
+            setTimeout(function() {
+              wepy.navigateBack()
+            }, 1000)
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
       }
     }
 
-    async getGood(id, page = 1, reset = false) {
+    async getUsers(page = 1, reset = false) {
       try {
-        let goodsResponse = await api.authRequest({
-          url: 'repositories/' + id + '/goods',
+        let usersResponse = await api.authRequest({
+          url: 'users',
           data: {
-            page: page,
-            include: 'lastUpdater'
+            page: page
           },
           method: 'GET'
         })
-        if (goodsResponse.statusCode === 200) {
-          let goods = goodsResponse.data.data
-          goods.forEach(function (good) {
-            good.updated_at_diff = util.diffForHumans(good.updated_at)
+        if (usersResponse.statusCode === 200) {
+          let users = usersResponse.data.data
+          users.forEach(function (user) {
+            user.updated_at_diff = util.diffForHumans(user.updated_at)
           })
-          this.goods = reset ? goods : this.goods.concat(goods)
-          let pagination = goodsResponse.data.meta.pagination
+          this.users = reset ? users : this.users.concat(users)
+          let pagination = usersResponse.data.meta.pagination
           // 根据分页设置是否还有更多数据
           if (pagination.current_page === pagination.total_pages) {
             this.noMoreData = true
@@ -114,7 +143,7 @@
         })
       } else {
         this.repository_id = options.repository_id
-        await this.getGood(options.repository_id, this.page, true)
+        await this.getUsers(this.page, true)
         this.$apply()
       }
     }
@@ -128,8 +157,8 @@
         this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
           this.noMoreData = false
           this.page = 1
+          this.getUsers(this.page, true)
           this.$apply()
-          this.getGood(this.repository_id, this.page, true)
         })
       }
     }
@@ -141,7 +170,7 @@
         })
       } else {
         this.page = 1
-        await this.getGood(this.repository_id, this.page, true)
+        await this.getUsers(this.page, true)
         this.$apply()
       }
     }
@@ -153,7 +182,7 @@
       }
       this.isLoading = true
       this.page = this.page + 1
-      await this.getGood(this.repository_id, this.page, false)
+      await this.getUsers(this.page, false)
       this.isLoading = false
       this.$apply()
     }

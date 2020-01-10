@@ -54,18 +54,24 @@ export default class extends wepy.app {
     pages: [
       'pages/repositories/index',
       'pages/repositories/create',
+      'pages/repositories/edit',
       'pages/users/me',
       'pages/users/edit',
       'pages/auth/login',
       'pages/auth/register',
       'pages/inventories/index',
       'pages/inventories/create',
+      'pages/inventories/edit',
       'pages/inventories/selectFactory',
       'pages/bills/index',
       'pages/bills/create',
       'pages/bills/selectGood',
       'pages/goods/create',
-      'pages/factories/create'
+      'pages/goods/edit',
+      'pages/factories/create',
+      'pages/factories/edit',
+      'pages/parters/index',
+      'pages/parters/create'
     ],
     window: {
       backgroundTextStyle: 'light',

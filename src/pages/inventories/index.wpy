@@ -7,6 +7,22 @@
     right: 40px;
     opacity: .8;
   }
+  .inventory-count {
+    background-color: #d8d8d8;
+    float: right;
+  }
+    .edit{
+    margin-right: 20px;
+    float: right;
+    width: 20px;
+    height: 20px;
+  }
+  .delete{
+    margin-right: 20px;
+    float: right;
+    width: 20px;
+    height: 20px;
+  }
 </style>
 <template>
   <view class="narbar page">
@@ -41,8 +57,10 @@
                               <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
                               <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
                             </view>
+                            <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
+                            <image src="/images/delete.png" class="delete" catchtap="deleteInventory({{inventory.id}})"/>
+                            <image src="/images/edit.png" class="edit" catchtap="editInventory({{inventory.id}})"/>
                           </view>
-                          <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
                         </navigator>
                       </repeat>
                     </view>
@@ -78,6 +96,8 @@
                               <view class="weui-media-box__info">
                                 <view class="weui-media-box__info__meta">{{ good.lastUpdater.name }} • </view>
                                 <view class="weui-media-box__info__meta">{{ good.updated_at_diff }}</view>
+                                  <image src="/images/delete.png" class="delete" catchtap="deleteGood({{good.id}})"/>
+                                  <image src="/images/edit.png" class="edit" catchtap="editGood({{good.id}})"/>
                               </view>
                             </view>
                           </navigator>
@@ -115,6 +135,8 @@
                               <view class="weui-media-box__info">
                                 <view class="weui-media-box__info__meta">{{ factory.lastUpdater.name }} • </view>
                                 <view class="weui-media-box__info__meta">{{ factory.updated_at_diff }}</view>
+                                <image src="/images/delete.png" class="delete" catchtap="deleteFactory({{factory.id}})"/>
+                                <image src="/images/edit.png" class="edit" catchtap="editFactory({{factory.id}})"/>
                               </view>
                             </view>
                           </navigator>
@@ -177,6 +199,180 @@
         if (this.activeIndex === 2) {
           this.getFactory(this.id, this.page, true)
         }
+      },
+      async deleteGood(goodId) {
+        let res = await wepy.showModal({
+          title: '确认删除',
+          content: '您确认删除该商品么',
+          confirmText: '删除',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let deleteResponse = await api.authRequest({
+            url: 'repositories/' + this.id + '/goods/' + goodId,
+            method: 'DELETE'
+          })
+
+          if (deleteResponse.statusCode === 204) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/inventories/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.goods = this.goods.filter((good) => good.id !== goodId)
+            this.$apply()
+            wepy.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+
+          if (deleteResponse.statusCode === 405) {
+            wepy.showToast({
+              title: '失败(数据关联)',
+              image: '/images/error.png',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async deleteFactory(factoryId) {
+        let res = await wepy.showModal({
+          title: '确认删除',
+          content: '您确认删除该往来单位么',
+          confirmText: '删除',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let deleteResponse = await api.authRequest({
+            url: 'repositories/' + this.id + '/factories/' + factoryId,
+            method: 'DELETE'
+          })
+
+          if (deleteResponse.statusCode === 204) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/inventories/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.factories = this.factories.filter((factory) => factory.id !== factoryId)
+            this.$apply()
+            wepy.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+
+          if (deleteResponse.statusCode === 405) {
+            wepy.showToast({
+              title: '失败(数据关联)',
+              image: '/images/error.png',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async deleteInventory(inventoryId) {
+        let res = await wepy.showModal({
+          title: '确认删除',
+          content: '您确认删除该订单么',
+          confirmText: '删除',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let deleteResponse = await api.authRequest({
+            url: 'repositories/' + this.id + '/inventories/' + inventoryId,
+            method: 'DELETE'
+          })
+
+          if (deleteResponse.statusCode === 204) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/inventories/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.inventories = this.inventories.filter((inventory) => inventory.id !== inventoryId)
+            this.$apply()
+            wepy.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+
+          if (deleteResponse.statusCode === 405) {
+            wepy.showToast({
+              title: '失败(数据关联)',
+              image: '/images/error.png',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async editInventory(inventoryId) {
+        wepy.navigateTo({
+          url: '/pages/inventories/edit?repository_id=' + this.id + '&inventory_id=' + inventoryId
+        })
+      },
+      async editGood(goodId) {
+        wepy.navigateTo({
+          url: '/pages/goods/edit?repository_id=' + this.id + '&good_id=' + goodId
+        })
+      },
+      async editFactory(factoryId) {
+        wepy.navigateTo({
+          url: '/pages/factories/edit?repository_id=' + this.id + '&factory_id=' + factoryId
+        })
       }
     }
 
@@ -308,13 +504,13 @@
       this.isLoading = true
       this.page = this.page + 1
       if (this.activeIndex === 0) {
-        await this.getInventory(this.id, this.page, true)
+        await this.getInventory(this.id, this.page, false)
       }
       if (this.activeIndex === 1) {
-        await this.getGood(this.id, this.page, true)
+        await this.getGood(this.id, this.page, false)
       }
       if (this.activeIndex === 2) {
-        await this.getFactory(this.id, this.page, true)
+        await this.getFactory(this.id, this.page, false)
       }
       this.isLoading = false
       this.$apply()

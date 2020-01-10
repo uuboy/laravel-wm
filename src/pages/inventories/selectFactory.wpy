@@ -155,7 +155,7 @@
       }
       this.isLoading = true
       this.page = this.page + 1
-      await this.getFactory(this.repository_id, this.page, true)
+      await this.getFactory(this.repository_id, this.page, false)
       this.isLoading = false
       this.$apply()
     }

@@ -73,6 +73,24 @@
     right: 40px;
     opacity: .8;
   }
+  .edit{
+    margin-right: 20px;
+    float: right;
+    width: 20px;
+    height: 20px;
+  }
+  .delete{
+    margin-right: 20px;
+    float: right;
+    width: 20px;
+    height: 20px;
+  }
+  .parter{
+    margin-right: 20px;
+    float: right;
+    width: 20px;
+    height: 20px;
+  }
 </style>
 <template>
   <view class="navbar page">
@@ -114,6 +132,9 @@
                                           </view>
 
                                           <view class="weui-badge inventory-count">{{ repository.inventory_count }}</view>
+                                          <image src="/images/delete.png" class="delete" catchtap="deleteRepository({{repository.id}})"/>
+                                          <image src="/images/edit.png" class="edit" catchtap="editRepository({{repository.id}})"/>
+                                          <image src="/images/parter.png" class="parter" catchtap="parterIndex({{repository.id}},{{repository.user_id}})"/>
                                       </view>
                                   </navigator>
                                 </repeat>
@@ -205,6 +226,69 @@
         this.page = 1
         this.$apply()
         this.getRepositories(this.page, true)
+      },
+      async deleteRepository(repositoryId) {
+        let res = await wepy.showModal({
+          title: '确认删除',
+          content: '您确认删除该仓库么',
+          confirmText: '删除',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let deleteResponse = await api.authRequest({
+            url: 'repositories/' + repositoryId,
+            method: 'DELETE'
+          })
+
+          if (deleteResponse.statusCode === 204) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/repositories/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.repositories = this.repositories.filter((repository) => repository.id !== repositoryId)
+            this.$apply()
+            wepy.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+
+          if (deleteResponse.statusCode === 405) {
+            wepy.showToast({
+              title: '失败(数据关联)',
+              image: '/images/error.png',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async editRepository(repositoryId) {
+        wepy.navigateTo({
+          url: '/pages/repositories/edit?repository_id=' + repositoryId
+        })
+      },
+      async parterIndex(repositoryId, userId) {
+        wepy.navigateTo({
+          url: '/pages/parters/index?repository_id=' + repositoryId + '&user_id=' + userId
+        })
       }
     }
     // 获取仓库数据

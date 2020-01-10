@@ -11,20 +11,20 @@
                     <image src="/images/repositories.png" style="width:100px;height:100px;margin-left: 30px;"></image>
                 </view>
                 <view class="weui-flex__item page__title" style="font-size: 30px; text-align: center;padding-top: 20px;">
-                    创建产品
+                    修改产品
                 </view>
             </view>
         </view>
         <view class="page__bd">
           <form bindsubmit="submit">
-            <view class="weui-cells__title">创建产品</view>
+            <view class="weui-cells__title">修改产品</view>
             <view class="weui-cells weui-cells_after-title">
                 <view class="weui-cell weui-cell_input">
                   <view class="weui-cell__hd">
                       <view class="weui-label">产品名称</view>
                   </view>
                   <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入产品名称" name="name"/>
+                      <input class="weui-input" placeholder="请输入产品名称" name="name" value="{{good.name}}" />
                   </view>
                 </view>
                 <view class="weui-cell weui-cell_input">
@@ -32,7 +32,7 @@
                       <view class="weui-label">产品规格</view>
                   </view>
                   <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入产品规格" name="type"/>
+                      <input class="weui-input" placeholder="请输入产品规格" name="type" value="{{good.type}}" />
                   </view>
                 </view>
                 <view class="weui-cell weui-cell_input">
@@ -40,7 +40,7 @@
                       <view class="weui-label">产品价格</view>
                   </view>
                   <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入产品价格" name="price"/>
+                      <input class="weui-input" placeholder="请输入产品价格" name="price" value="{{good.price}}" />
                   </view>
                 </view>
                 <view class="weui-cell weui-cell_input">
@@ -48,7 +48,7 @@
                       <view class="weui-label">生产厂家</view>
                   </view>
                   <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入生产厂家" name="factory"/>
+                      <input class="weui-input" placeholder="请输入生产厂家" name="factory" value="{{good.factory}}" />
                   </view>
                 </view>
                 <view class="weui-cell weui-cell_input">
@@ -56,7 +56,7 @@
                       <view class="weui-label">计量单位</view>
                   </view>
                   <view class="weui-cell__bd">
-                      <input class="weui-input" placeholder="请输入计量单位" name="unit"/>
+                      <input class="weui-input" placeholder="请输入计量单位" name="unit" value="{{good.unit}}" />
                   </view>
                 </view>
                 <view class="weui-cell weui-cell_select">
@@ -83,13 +83,15 @@
   import wepy from 'wepy'
   import api from '@/utils/api'
 
-  export default class GoodsCreate extends wepy.page {
+  export default class GoodsEdit extends wepy.page {
     config = {
-      navigationBarTitleText: '添加产品'
+      navigationBarTitleText: '修改产品'
     }
 
     data = {
       repository_id: 0,
+      good_id: 0,
+      good: null,
       sorts: ['消耗类', '装备类'],
       sortIndex: 0,
       date: '',
@@ -110,6 +112,9 @@
         })
       } else {
         this.repository_id = options.repository_id
+        this.good_id = options.good_id
+        await this.getGood(this.good_id)
+        this.sortIndex = this.good.sort
         this.$apply()
       }
     }
@@ -119,6 +124,17 @@
         wepy.navigateTo({
           url: '/pages/auth/login'
         })
+      }
+    }
+
+    async getGood(id) {
+      let goodResponse = await api.authRequest({
+        url: 'repositories/' + this.repository_id + '/goods/' + id
+      })
+
+      if (goodResponse.statusCode === 200) {
+        this.good = goodResponse.data
+        this.$apply()
       }
     }
 
@@ -138,13 +154,13 @@
       }
 
       try {
-        let createResponse = await api.authRequest({
-          url: 'repositories/' + this.repository_id + '/goods',
-          method: 'POST',
+        let editResponse = await api.authRequest({
+          url: 'repositories/' + this.repository_id + '/goods/' + this.good_id,
+          method: 'PUT',
           data: formData
         })
 
-        if (createResponse.statusCode === 201) {
+        if (editResponse.statusCode === 200) {
           let pages = this.getCurrentPages()
           // 如果有上一页
           if (pages.length > 1) {
@@ -159,7 +175,7 @@
             this.$apply()
           }
           wepy.showToast({
-            title: '添加成功',
+            title: '修改成功',
             icon: 'success'
           })
 
