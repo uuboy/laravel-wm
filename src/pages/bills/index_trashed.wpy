@@ -7,11 +7,8 @@
     right: 40px;
     opacity: .8;
 }
-.delete{
-  margin-right: 20px;
-  float: right;
-  width: 20px;
-  height: 20px;
+.options{
+  margin-left: 20px;
 }
 .restore{
   position: absolute;
@@ -26,11 +23,13 @@
 <view class="page">
   <view class="page__hd">
     <view class="weui-flex">
-      <view class="weui-flex__item">单据列表</view>
+      <view class="weui-flex__item">单据回收站</view>
     </view>
   </view>
   <view class="page__bd">
-    <view class="weui-cells__title">带说明的列表项</view>
+    <view class="weui-cells__title">
+      <button class="weui-btn mini-btn options" type="warn" size="mini" catchtap="deleteBillAll()">清空回收站</button>
+    </view>
 
     <view class="weui-cells weui-cells_after-title">
       <repeat for="{{bills}}" key="id" index="index" item="bill">
@@ -39,7 +38,8 @@
           <view class="weui-cell__bd">{{ bill.good.name }}</view>
           <view class="weui-cell__ft">{{ bill.num }}</view>
           <view class="weui-cell__ft" wx:if="{{ bill.can_delete }}">
-            <image src="/images/delete.png" class="delete" catchtap="deleteBill({{bill.id}},{{bill.good.id}})"/>
+            <button class="weui-btn mini-btn options" type="warn" size="mini" catchtap="deleteBill({{bill.id}},{{bill.good.id}})">删除</button>
+            <button class="weui-btn mini-btn options" type="primary" size="mini" catchtap="restoreBill({{bill.id}},{{bill.good.id}})">恢复</button>
           </view>
         </view>
       </repeat>
@@ -47,14 +47,6 @@
     <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
       <view class="weui-loadmore__tips weui-loadmore__tips_in-line bgF8">没有更多数据</view>
     </view>
-    <!-- 清单新建按钮 -->
-    <navigator url="/pages/bills/create?repository_id={{repository_id}}&inventory_id={{id}}">
-      <image src="/images/create3.png" class="create"/>
-    </navigator>
-    <!-- 已删除列表按钮 -->
-    <navigator url="/pages/bills/index_trashed?repository_id={{repository_id}}&inventory_id={{id}}">
-      <image src="/images/restore.png" class="restore"/>
-    </navigator>
   </view>
 </view>
 </template>
@@ -63,7 +55,7 @@
   import api from '@/utils/api'
   import util from '@/utils/util'
 
-  export default class BillsIndex extends wepy.page {
+  export default class BillsIndexTrashed extends wepy.page {
     config = {
       enablePullDownRefresh: true
     }
@@ -80,9 +72,9 @@
     methods = {
       async deleteBill(billId, billGoodId) {
         let res = await wepy.showModal({
-          title: '确认删除',
-          content: '您确认删除该单据么',
-          confirmText: '删除',
+          title: '确认永久删除',
+          content: '您确认永久删除该单据么',
+          confirmText: '永久删除',
           cancelText: '取消'
         })
 
@@ -92,7 +84,10 @@
 
         try {
           let deleteResponse = await api.authRequest({
-            url: 'repositories/' + this.repository_id + '/inventories/' + this.id + '/goods/' + billGoodId + '/bills/' + billId,
+            url: 'repositories/' + this.repository_id + '/inventories/' + this.id + '/goods/' + billGoodId + '/bills/forceDestroy',
+            data: {
+              bill_id: billId
+            },
             method: 'DELETE'
           })
 
@@ -102,13 +97,106 @@
               // 检查所有已经打开的页面
               let refreshPages = []
               pages.forEach((page) => {
-                if (page.route === 'pages/inventories/index') {
+                if (page.route === 'pages/bills/index') {
                   refreshPages.push(page.route)
                 }
               })
               this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
             }
             this.bills = this.bills.filter((bill) => bill.id !== billId)
+            this.$apply()
+            wepy.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async restoreBill(billId, billGoodId) {
+        let res = await wepy.showModal({
+          title: '确认恢复',
+          content: '您确认恢复该单据么',
+          confirmText: '恢复',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let restoreResponse = await api.authRequest({
+            url: 'repositories/' + this.repository_id + '/inventories/' + this.id + '/goods/' + billGoodId + '/bills/restore',
+            data: {
+              bill_id: billId
+            },
+            method: 'POST'
+          })
+
+          if (restoreResponse.statusCode === 200) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/bills/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.bills = this.bills.filter((bill) => bill.id !== billId)
+            this.$apply()
+            wepy.showToast({
+              title: '恢复成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async deleteBillAll() {
+        let res = await wepy.showModal({
+          title: '确认彻底清空',
+          content: '您确认彻底清空回收站吗',
+          confirmText: '清空',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let deleteResponse = await api.authRequest({
+            url: 'repositories/' + this.repository_id + '/inventories/' + this.id + '/bills/trashed/forceDestroy',
+            method: 'DELETE'
+          })
+
+          if (deleteResponse.statusCode === 204) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/bills/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.bills = []
             this.$apply()
             wepy.showToast({
               title: '删除成功',
@@ -181,7 +269,7 @@
     async getBills(id, page = 1, reset = false) {
       try {
         let billsResponse = await api.authRequest({
-          url: 'repositories/' + this.repository_id + '/inventories/' + id + '/bills',
+          url: 'repositories/' + this.repository_id + '/inventories/' + id + '/bills/trashed',
           data: {
             page: page,
             include: 'good'

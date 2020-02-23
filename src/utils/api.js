@@ -27,10 +27,20 @@ const request = async (options, showLoading = true) => {
 
   // 服务器异常后给与提示
   if (response.statusCode === 500) {
-    wepy.showModal({
-      title: '提示',
-      content: '服务器错误，请联系管理员'
-    })
+    if (response.data.message.search("Integrity constraint violation") !== -1) {
+      wepy.showToast({
+        title: '失败(数据关联)',
+        image: '/images/error.png',
+        duration: 2000
+      })
+    } else {
+      wepy.showModal({
+        title: '提示',
+        content: '服务器错误，请联系管理员'
+      })
+    }
+
+
   }
   if (response.statusCode === 429) {
     wepy.showModal({

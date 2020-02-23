@@ -211,13 +211,17 @@
       // 当前分页
       page: 1,
       noMoreData: false,
-      url: null,
+      url: [
+        '/repositories',
+        '/parter/repositories'
+      ],
       isLoading: false,
 
       tabs: ['创建的仓库', '协作的仓库'],
       activeIndex: 0,
       sliderOffset: 0,
-      sliderLeft: 0
+      sliderLeft: 0,
+      user: null
     }
     methods = {
       tabClick (e) {
@@ -295,18 +299,18 @@
     async getRepositories(page = 1, reset = false) {
       try {
         // 请求仓库列表接口
+        let url = null
         if (this.activeIndex === 0) {
-          this.url = 'repositories'
+          url = this.url[0]
         }
         if (this.activeIndex === 1) {
-          this.url = 'parter/repositories'
+          url = this.url[1]
         }
-        this.$apply()
         let repositoriesResponse = await api.authRequest({
-          url: this.url,
+          url: 'users/' + this.user.id + url,
           data: {
             page: page,
-            include: 'user,lastUpdater'
+            include: 'lastUpdater'
           }
         })
         if (repositoriesResponse.statusCode === 200) {
@@ -364,7 +368,9 @@
           url: '/pages/auth/login'
         })
       } else {
+        this.user = await this.$parent.getCurrentUser()
         await this.getRepositories(this.page, true)
+        this.$apply()
       }
     }
     async onShow() {
@@ -373,12 +379,14 @@
           url: '/pages/auth/login'
         })
       } else {
+        this.user = await this.$parent.getCurrentUser()
         this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
           this.noMoreData = false
           this.page = 1
           this.$apply()
           this.getRepositories(this.page, true)
         })
+        this.$apply()
       }
     }
   }

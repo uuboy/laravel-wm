@@ -1,0 +1,259 @@
+<style lang="less">
+  .create {
+    width: 45px;
+    height: 45px;
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    opacity: .8;
+  }
+  .inventory-count {
+    background-color: #d8d8d8;
+    float: right;
+  }
+    .edit{
+    margin-right: 20px;
+    float: right;
+    width: 20px;
+    height: 20px;
+  }
+  .options{
+    margin-right: 20px;
+    float: right;
+  }
+</style>
+<template>
+  <view class="page">
+    <view class="page__hd">
+      <view class="weui-flex">
+        <view class="weui-flex__item">
+          清单回收箱
+        </view>
+      </view>
+    </view>
+    <view class="page__bd">
+        <view class='weui-panel weui-panel_access'>
+          <view class="weui-panel__hd">清单列表</view>
+          <view class="weui-panel__bd">
+            <repeat for="{{ inventories }}" key="id" index="index" item="inventory">
+              <view class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">{{ inventory.name }}</view>
+                <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                  <view class="weui-media-box__title">{{ inventory.name }}</view>
+                  <view class="weui-media-box__info">
+                    <view class="weui-media-box__info__meta">{{ inventory.lastUpdater.name }} • </view>
+                    <view class="weui-media-box__info__meta">{{ inventory.updated_at_diff }}</view>
+                    <view class="weui-badge inventory-count">{{ inventory.bill_count }}</view>
+                  </view>
+                  <button class="weui-btn mini-btn options" type="primary" size="mini" catchtap="restoreInventory({{ inventory.id }})">恢复</button>
+                  <button class="weui-btn mini-btn options" type="warn" size="mini" catchtap="deleteInventory({{ inventory.id }})">删除</button>
+                </view>
+              </view>
+            </repeat>
+          </view>
+          <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+            <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+          </view>
+        </view>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/utils/api'
+  import util from '@/utils/util'
+
+  export default class InventoriesIndexTrashed extends wepy.page {
+    config = {
+      enablePullDownRefresh: true
+    }
+    data = {
+      inventories: [],
+      page: 1,
+      isLoading: false,
+      noMoreData: false,
+      id: 0
+    }
+    methods = {
+      async deleteInventory(inventoryId) {
+        let res = await wepy.showModal({
+          title: '确认删除',
+          content: '您确认永久删除该订单么',
+          confirmText: '永久删除',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let deleteResponse = await api.authRequest({
+            url: 'repositories/' + this.id + '/inventories/forceDestroy',
+            data: {
+              inventory_id: inventoryId
+            },
+            method: 'DELETE'
+          })
+
+          if (deleteResponse.statusCode === 204) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/inventories/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.inventories = this.inventories.filter((inventory) => inventory.id !== inventoryId)
+            this.$apply()
+            wepy.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      },
+      async restoreInventory(inventoryId) {
+        let res = await wepy.showModal({
+          title: '确认恢复',
+          content: '您确认恢复该订单么',
+          confirmText: '恢复',
+          cancelText: '取消'
+        })
+
+        if (!res.confirm) {
+          return
+        }
+
+        try {
+          let restoreResponse = await api.authRequest({
+            url: 'repositories/' + this.id + '/inventories/restore',
+            data: {
+              inventory_id: inventoryId
+            },
+            method: 'POST'
+          })
+
+          if (restoreResponse.statusCode === 200) {
+            let pages = this.getCurrentPages()
+            if (pages.length > 1) {
+              // 检查所有已经打开的页面
+              let refreshPages = []
+              pages.forEach((page) => {
+                if (page.route === 'pages/inventories/index') {
+                  refreshPages.push(page.route)
+                }
+              })
+              this.$parent.globalData.refreshPages = this.$parent.globalData.refreshPages.concat(refreshPages)
+            }
+            this.inventories = this.inventories.filter((inventory) => inventory.id !== inventoryId)
+            this.$apply()
+            wepy.showToast({
+              title: '恢复成功',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      }
+    }
+
+    async getInventory(id, page = 1, reset = false) {
+      try {
+        let inventoriesResponse = await api.authRequest({
+          url: 'repositories/' + id + '/inventories/trashed',
+          data: {
+            page: page,
+            include: 'lastUpdater'
+          },
+          method: 'GET'
+        })
+        if (inventoriesResponse.statusCode === 200) {
+          let inventories = inventoriesResponse.data.data
+          inventories.forEach(function (inventory) {
+            inventory.updated_at_diff = util.diffForHumans(inventory.updated_at)
+          })
+          this.inventories = reset ? inventories : this.inventories.concat(inventories)
+          let pagination = inventoriesResponse.data.meta.pagination
+          // 根据分页设置是否还有更多数据
+          if (pagination.current_page === pagination.total_pages) {
+            this.noMoreData = true
+          } else {
+            this.noMoreData = false
+          }
+          this.$apply()
+        }
+      } catch (err) {
+        wepy.showModal({
+          title: '提示',
+          content: '服务器错误，请联系管理员'
+        })
+      }
+    }
+
+    async onPullDownRefresh() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.page = 1
+        this.$apply()
+        await this.getInventory(this.id, this.page, true)
+        wepy.stopPullDownRefresh()
+      }
+    }
+
+    async onReachBottom() {
+      // 如果没有更多内容，直接返回
+      if (this.noMoreData || this.isLoading) {
+        return
+      }
+      this.isLoading = true
+      this.page = this.page + 1
+      await this.getInventory(this.id, this.page, false)
+      this.isLoading = false
+      this.$apply()
+    }
+    async onLoad(options) {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.id = options.repository_id
+        this.$apply()
+        await this.getInventory(this.id, this.page, true)
+      }
+    }
+    async onShow() {
+      if (!this.$parent.checkLogin()) {
+        wepy.navigateTo({
+          url: '/pages/auth/login'
+        })
+      } else {
+        this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
+          this.noMoreData = false
+          this.page = 1
+          this.$apply()
+          this.getInventory(this.id, this.page, true)
+        })
+      }
+    }
+  }
+</script>

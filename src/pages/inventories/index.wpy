@@ -23,6 +23,14 @@
     width: 20px;
     height: 20px;
   }
+  .restore{
+  position: absolute;
+  right: 20px;
+  top:60px;
+  width: 30px;
+  height: 30px;
+  opacity: .7;
+}
 </style>
 <template>
   <view class="narbar page">
@@ -71,6 +79,10 @@
                   <!-- 清单新建按钮 -->
                   <navigator url="/pages/inventories/create?repository_id={{id}}">
                     <image src="/images/create3.png" class="create"/>
+                  </navigator>
+                  <!-- 回收站按钮 -->
+                  <navigator url="/pages/inventories/index_trashed?repository_id={{id}}">
+                    <image src="/images/restore.png" class="restore"/>
                   </navigator>
               </view>
             </view>
@@ -224,7 +236,7 @@
               // 检查所有已经打开的页面
               let refreshPages = []
               pages.forEach((page) => {
-                if (page.route === 'pages/inventories/index') {
+                if (page.route === 'pages/repositories/index') {
                   refreshPages.push(page.route)
                 }
               })
@@ -235,14 +247,6 @@
             wepy.showToast({
               title: '删除成功',
               icon: 'success',
-              duration: 2000
-            })
-          }
-
-          if (deleteResponse.statusCode === 405) {
-            wepy.showToast({
-              title: '失败(数据关联)',
-              image: '/images/error.png',
               duration: 2000
             })
           }
@@ -277,7 +281,7 @@
               // 检查所有已经打开的页面
               let refreshPages = []
               pages.forEach((page) => {
-                if (page.route === 'pages/inventories/index') {
+                if (page.route === 'pages/repositories/index') {
                   refreshPages.push(page.route)
                 }
               })
@@ -288,14 +292,6 @@
             wepy.showToast({
               title: '删除成功',
               icon: 'success',
-              duration: 2000
-            })
-          }
-
-          if (deleteResponse.statusCode === 405) {
-            wepy.showToast({
-              title: '失败(数据关联)',
-              image: '/images/error.png',
               duration: 2000
             })
           }
@@ -330,7 +326,7 @@
               // 检查所有已经打开的页面
               let refreshPages = []
               pages.forEach((page) => {
-                if (page.route === 'pages/inventories/index') {
+                if (page.route === 'pages/repositories/index') {
                   refreshPages.push(page.route)
                 }
               })
@@ -341,14 +337,6 @@
             wepy.showToast({
               title: '删除成功',
               icon: 'success',
-              duration: 2000
-            })
-          }
-
-          if (deleteResponse.statusCode === 405) {
-            wepy.showToast({
-              title: '失败(数据关联)',
-              image: '/images/error.png',
               duration: 2000
             })
           }

@@ -164,7 +164,7 @@
             // 检查所有已经打开的页面
             let refreshPages = []
             pages.forEach((page) => {
-              if (page.route === 'pages/inventories/index') {
+              if (page.route === 'pages/inventories/index' || page.route === 'pages/repositories/index') {
                 refreshPages.push(page.route)
               }
             })
